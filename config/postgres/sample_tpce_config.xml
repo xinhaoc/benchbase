@@ -30,29 +30,20 @@
     <!-- TPCE specific -->
     <transactiontypes>
         <transactiontype>
-            <name>NewOrder</name>
+            <name>CustomerEmulator</name>
             <!--<preExecutionWait>18000</preExecutionWait>-->
             <!--<postExecutionWait>12000</postExecutionWait>-->
         </transactiontype>
         <transactiontype>
-            <name>Payment</name>
+            <name>DataMaintenance</name>
             <!--<preExecutionWait>3000</preExecutionWait>-->
             <!--<postExecutionWait>12000</postExecutionWait>-->
         </transactiontype>
         <transactiontype>
-            <name>OrderStatus</name>
+            <name>MarketExchangeEmulator</name>
             <!--<preExecutionWait>2000</preExecutionWait>-->
             <!--<postExecutionWait>10000</postExecutionWait>-->
         </transactiontype>
-        <transactiontype>
-            <name>Delivery</name>
-            <!--<preExecutionWait>2000</preExecutionWait>-->
-            <!--<postExecutionWait>5000</postExecutionWait>-->
-        </transactiontype>
-        <transactiontype>
-            <name>StockLevel</name>
-            <!--<preExecutionWait>2000</preExecutionWait>-->
-            <!--<postExecutionWait>5000</postExecutionWait>-->
-        </transactiontype>
+
     </transactiontypes>
 </parameters>
