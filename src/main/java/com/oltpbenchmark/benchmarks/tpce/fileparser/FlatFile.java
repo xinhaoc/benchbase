@@ -27,58 +27,43 @@
  *  OTHER DEALINGS IN THE SOFTWARE.                                        *
  ***************************************************************************/
 
-package com.oltpbenchmark.benchmarks.tpce.tablegenerator;
+package com.oltpbenchmark.benchmarks.tpce.fileparser;
 
-import com.oltpbenchmark.benchmarks.tpce.TPCEConstants;
-import com.oltpbenchmark.benchmarks.tpce.TPCEGenerator;
-import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CompanyCompetitorsGenerator extends TableGenerator {
+public class FlatFile extends InputFileHandler {
 
-    private static final int columnsNum = 3;
-    private final long companyCompsTotal;
-    private final long companyCompsStart;
-    private long counter;
+    protected List<String[]> tuples = new ArrayList<String[]>();
 
-    private final InputFileHandler compCompFile;
-    private final int compCompRecords;
-
-    public CompanyCompetitorsGenerator(TPCEGenerator generator) {
-        super(generator);
-
-        companyCompsTotal = generator.getCompanyCompetitorCount(generator.getCustomersNum());
-        companyCompsStart = generator.getCompanyCompetitorCount(generator.getStartCustomer());
-
-        counter = companyCompsStart;
-
-        compCompFile = generator.getInputFile(TPCEGenerator.InputFile.COMPANYCOMP);
-        compCompRecords = compCompFile.getRecordsNum();
-
+    public FlatFile(File inputFile) {
+        super(inputFile);
     }
 
     @Override
-    public boolean hasNext() {
-        return counter < companyCompsStart + companyCompsTotal;
+    protected void insertTuple(String[] tuple) {
+        tuples.add(tuple);
     }
 
     @Override
-    public Object[] next() {
-        Object tuple[] = new Object[columnsNum];
+    public String[] getTupleByIndex(int index) {
+        return tuples.get(index);
+    }
 
-        /*
-         * Note that the number of company competitors to generate may be more that the number in the file.
-         * That is why it wraps around every 15000 records (the number of records in the file).
-         */
-        String[] compCompRecord = compCompFile.getTupleByIndex((int)(counter % compCompRecords));
-        long coId = Long.valueOf(compCompRecord[0]) + TPCEConstants.IDENT_SHIFT + counter / compCompRecords * compCompRecords;
-        long coCompId = Long.valueOf(compCompRecord[1]) + TPCEConstants.IDENT_SHIFT + counter / compCompRecords * compCompRecords;
+    /*
+     * Strictly, we do not need this for this type of file, but why not?
+     */
+    @Override
+    public List<String[]> getTuplesByIndex(int index) {
+        List<String[]> tupleList = new ArrayList<String[]>();
 
-        tuple[0] = coId; // cp_co_id
-        tuple[1] = coCompId; // cp_comp_id
-        tuple[2] = compCompRecord[2]; // cp_in_id
+        tupleList.add(tuples.get(index));
+        return tupleList;
+    }
 
-        counter++;
-
-        return tuple;
+    @Override
+    public int getRecordsNum() {
+        return tuples.size();
     }
 }

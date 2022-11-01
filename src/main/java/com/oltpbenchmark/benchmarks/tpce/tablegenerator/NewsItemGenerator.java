@@ -44,7 +44,7 @@ import java.util.Date;
  *
  */
 public class NewsItemGenerator extends TableGenerator {
-    private final static int columnsNum = 4;
+    private final static int columnsNum = 7;
     private final static int newsItemMaxDaysAgo = 50;   // how many days ago can a news item be dated
 
     private static final int NEWS_HEAD_LEN = 80;   // maximum length of the news headline field (see tpce-ddl.sql)

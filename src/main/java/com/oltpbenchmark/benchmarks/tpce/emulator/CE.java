@@ -170,8 +170,7 @@ public class CE {
         }
     }
 
-    public void doTxn() {
-        int iTxnType = txnMixGenerator.generateNextTxnType();
+    public void doTxn(int iTxnType) {
 
         if (bClearBufferBeforeGeneration) {
             zeroInputBuffer(iTxnType);

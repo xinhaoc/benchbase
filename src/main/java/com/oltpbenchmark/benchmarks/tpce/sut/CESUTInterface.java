@@ -35,7 +35,6 @@ public class CESUTInterface {
             LOG.error("Broker volume error" + tBrokerVolumeTxnOutput.getStatus());
             return false;
         }
-
     }
 
     public boolean CustomerPosition(TCustomerPositionTxnInput pTxnInput) {

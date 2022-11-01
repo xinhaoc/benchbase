@@ -10,7 +10,6 @@ import com.oltpbenchmark.benchmarks.tpce.inputdo.cleanup.TTradeCleanupTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.customerposition.TCustomerPositionFrame1Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.customerposition.TCustomerPositionFrame2Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.customerposition.TCustomerPositionTxnInput;
-import com.oltpbenchmark.benchmarks.tpce.inputdo.datamaintenance.TDataMaintenanceFrame1Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.datamaintenance.TDataMaintenanceTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.marketfeed.TMarketFeedFrame1Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.marketfeed.TMarketFeedTxnInput;
@@ -47,7 +46,6 @@ import com.oltpbenchmark.benchmarks.tpce.outputdo.tradeupdate.TTradeUpdateFrame3
 import com.oltpbenchmark.benchmarks.tpce.outputdo.tradeupdate.TTradeUpdateTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.pojo.ErrorCode;
 import com.oltpbenchmark.benchmarks.tpce.utils.TimestampType;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -60,12 +58,18 @@ import static com.oltpbenchmark.benchmarks.tpce.outputdo.customerposition.TCusto
 import static com.oltpbenchmark.benchmarks.tpce.pojo.TxnHarnessStructs.*;
 
 public class SUTInterfacesImpl implements SUTInterfaces {
-    DBConnectionImpl dbConnection = new DBConnectionImpl();
+    private final DBConnectionImpl dbConnection;
 
-    ErrorCode errorCode = new ErrorCode();
+    private final ErrorCode errorCode;
 
     private final static long iTIdentShift = 4300000000L;
     private final static long iDefaultLoadUnitSize = 1000L;
+
+
+    public SUTInterfacesImpl() {
+        this.dbConnection = new DBConnectionImpl();
+        this.errorCode = new ErrorCode();
+    }
 
     @Override
     public void CBrokerVolume(TBrokerVolumeTxnInput input, TBrokerVolumeTxnOutput output) {
@@ -73,7 +77,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         TBrokerVolumeFrame1Input frame1Input = new TBrokerVolumeFrame1Input();
         output.setStatus(ErrorCode.SUCCESS);
 
-        dbConnection.execute(connection, input, frame1Output);
+//        dbConnection.execute(connection, input, frame1Output);
         if (frame1Output.getList_len() < 0 || frame1Output.getList_len() > max_broker_list_len) {
             output.setStatus(ErrorCode.BVF1_ERROR1);
 
@@ -98,7 +102,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         frame1Input.setCust_id(input.getCustId());
         frame1Input.setTax_id(input.getTaxId());
         //execute frame1
-        dbConnection.execute(connection, frame1Input, frame1Output);
+//        dbConnection.execute(connection, frame1Input, frame1Output);
         if (frame1Output.getAcct_len() < 1 || frame1Output.getAcct_len() > max_acct_len) {
             output.setStatus(ErrorCode.CPF1_ERROR1);
         }
@@ -134,7 +138,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         }
         if (input.getHistory()) {
             frame2Input.setAcct_id(frame1Output.getAcct_id()[(int) input.getAcctIdIndex()]);
-            dbConnection.execute(connection, frame2Input, frame2Output);
+//            dbConnection.execute(connection, frame2Input, frame2Output);
             if (frame2Output.getHist_len() < min_hist_len || frame2Output.getHist_len() > max_hist_len) {
                 output.setStatus(ErrorCode.CPF2_ERROR1);
             }
@@ -154,7 +158,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
     @Override
     public void CDataMaintenance(TDataMaintenanceTxnInput input, TDataMaintenanceTxnOutput output) {
         output.setStatus(ErrorCode.SUCCESS);
-        dbConnection.execute(connection, input);
+//        dbConnection.execute(connection, input);
     }
 
     @Override
@@ -168,7 +172,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         }
 
         //TODO send to market
-        dbConnection.execute(connection, frame1Input, frame1Output);
+//        dbConnection.execute(connection, frame1Input, frame1Output);
         if (frame1Output.getNum_updated() < input.getUnique_symbols()) {
             output.setStatus(ErrorCode.MFF1_ERROR1);
         }
@@ -180,7 +184,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         output.setStatus(ErrorCode.SUCCESS);
         if (input.getAcctId() != 0 || input.getCId() != 0 || input.getIndustryName().length() != 0) {
             TMarketWatchFrame1Output frame1Output = new TMarketWatchFrame1Output();
-            dbConnection.execute(connection, input, frame1Output);
+//            dbConnection.execute(connection, input, frame1Output);
             output.setPct_change(frame1Output.getPct_change());
         } else {
             output.setStatus(ErrorCode.MWF1_ERROR1);
@@ -193,7 +197,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         output.setLast_vol(0);
         output.setNews_len(0);
         output.setStatus(ErrorCode.SUCCESS);
-        dbConnection.execute(connection, input, frame1Output);
+//        dbConnection.execute(connection, input, frame1Output);
 
         if (frame1Output.getDay_len() < min_day_len || frame1Output.getDay_len() > max_day_len) {
             output.setStatus(ErrorCode.SDF1_ERROR1);
@@ -214,15 +218,15 @@ public class SUTInterfacesImpl implements SUTInterfaces {
 
     }
 
-    @Override
-    public void CSendToMarketInterface() {
-
-    }
+//    @Override
+//    public void CSendToMarketInterface() {
+//
+//    }
 
     @Override
     public void CTradeCleanup(TTradeCleanupTxnInput input, TTradeCleanupTxnOutput output) {
         output.setStatus(ErrorCode.SUCCESS);
-        dbConnection.execute(connection, input);
+//        dbConnection.execute(connection, input);
     }
 
     @Override
@@ -235,7 +239,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 TTradeLookupFrame1Output frame1Output = new TTradeLookupFrame1Output();
 
                 frame1Input.setMax_trades(input.getMaxTrades());
-                dbConnection.execute(connection, frame1Input, frame1Output);
+//                dbConnection.execute(connection, frame1Input, frame1Output);
 
                 if (frame1Output.getNum_found() != input.getMaxTrades()) {
                     output.setStatus(ErrorCode.TLF1_ERROR1);
@@ -255,7 +259,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 frame2Input.setStart_trade_dts(input.getStartTradeDts());
                 frame2Input.setEnd_trade_dts(input.getEndTradeDts());
 
-                dbConnection.execute(connection, frame2Input, frame2Output);
+//                dbConnection.execute(connection, frame2Input, frame2Output);
                 // Validate Frame 2 Output
                 if (frame2Output.getNum_found() < 0 || frame2Output.getNum_found() > frame2Input.getMax_trades()) {
                     output.setStatus(ErrorCode.TLF2_ERROR1);
@@ -281,7 +285,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 frame3Input.setEnd_trade_dts(input.getEndTradeDts());
                 frame3Input.setMax_acct_id(input.getMaxAcctId());
                 // Execute Frame 3
-                dbConnection.execute(connection, frame3Input, frame3Output);
+//                dbConnection.execute(connection, frame3Input, frame3Output);
                 // Validate Frame 3 Output
                 if (frame3Output.getNum_found() < 0 || frame3Output.getNum_found() > frame3Input.getMax_trades()) {
                     output.setStatus(ErrorCode.TLF3_ERROR1);
@@ -305,7 +309,7 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 frame4Input.setTrade_dts(input.getStartTradeDts());
 
                 // Execute Frame 4
-                dbConnection.execute(connection, frame4Input, frame4Output);
+//                dbConnection.execute(connection, frame4Input, frame4Output);
                 // Validate Frame 4 Output
                 // NOTE: The TLF4_ERROR2 check must be in an else clause, or else it could
                 //       potentially overwrite the TLF1_ERROR1 status, if set.
@@ -358,10 +362,10 @@ public class SUTInterfacesImpl implements SUTInterfaces {
         // FRAME 2
         //
 
-        if (strcmp(pTxnInput->exec_l_name, Frame1Output.cust_l_name)
-            || strcmp(pTxnInput->exec_f_name, Frame1Output.cust_f_name)
-            || strcmp(pTxnInput->exec_tax_id, Frame1Output.tax_id))
-        {
+//        if (strcmp(pTxnInput->exec_l_name, Frame1Output.cust_l_name)
+//            || strcmp(pTxnInput->exec_f_name, Frame1Output.cust_f_name)
+//            || strcmp(pTxnInput->exec_tax_id, Frame1Output.tax_id))
+//        {
             // Copy Frame 2 Input
             frame2Output.setAp_acl(new String());
             frame2Input.setAcct_id(input.getAcctId());
@@ -465,29 +469,29 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 //
                 // Send to Market Exchange Emulator
                 //
-                TradeRequestForMEE.price_quote = Frame4Input.requested_price;
-                strncpy(TradeRequestForMEE.symbol, Frame4Input.symbol, sizeof(TradeRequestForMEE.symbol));
-                TradeRequestForMEE.trade_id = Frame4Output.trade_id;
-                TradeRequestForMEE.trade_qty = Frame4Input.trade_qty;
-                strncpy( TradeRequestForMEE.trade_type_id, pTxnInput->trade_type_id, sizeof( TradeRequestForMEE.trade_type_id ));
-                //TradeRequestForMEE.eTradeType = pTxnInput->eSTMTradeType;
-                if( Frame4Input.type_is_market )
-                {
-                    TradeRequestForMEE.eAction = eMEEProcessOrder;
-                }
-                else
-                {
-                    TradeRequestForMEE.eAction = eMEESetLimitOrderTrigger;
-                }
+//                TradeRequestForMEE.price_quote = frame4Input.requested_price;
+//                strncpy(TradeRequestForMEE.symbol, Frame4Input.symbol, sizeof(TradeRequestForMEE.symbol));
+//                TradeRequestForMEE.trade_id = Frame4Output.trade_id;
+//                TradeRequestForMEE.trade_qty = Frame4Input.trade_qty;
+//                strncpy( TradeRequestForMEE.trade_type_id, pTxnInput->trade_type_id, sizeof( TradeRequestForMEE.trade_type_id ));
+//                //TradeRequestForMEE.eTradeType = pTxnInput->eSTMTradeType;
+//                if( Frame4Input.type_is_market )
+//                {
+//                    TradeRequestForMEE.eAction = eMEEProcessOrder;
+//                }
+//                else
+//                {
+//                    TradeRequestForMEE.eAction = eMEESetLimitOrderTrigger;
+//                }
 
-                m_pSendToMarket->SendToMarketFromHarness(TradeRequestForMEE); // maybe should check the return code here
+//                m_pSendToMarket->SendToMarketFromHarness(TradeRequestForMEE); // maybe should check the return code here
             }
 
 
         }
 
 
-    }
+//    }
 
     @Override
     public void CTradeResult(TTradeResultTxnInput input, TTradeResultTxnOutput output) {
@@ -756,7 +760,8 @@ public class SUTInterfacesImpl implements SUTInterfaces {
                 output.setFrame_executed(3);
                 output.setNum_found(frame3Output.getNum_found());
                 output.setNum_updated(frame3Output.getNum_updated());
-                for (int i = 0; i < frame3Output.getNum_found() && i <; i++) {
+                //TODO 1000?
+                for (int i = 0; i < frame3Output.getNum_found() && i < 1000; i++) {
                     output.getIs_cash()[i] = frame3Output.getTrade_info()[i].isIs_cash();
                     output.getTrade_list()[i] = frame3Output.getTrade_info()[i].getTrade_id();
                 }

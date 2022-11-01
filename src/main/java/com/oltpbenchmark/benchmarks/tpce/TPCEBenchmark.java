@@ -4,8 +4,10 @@ import com.oltpbenchmark.WorkloadConfiguration;
 import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.benchmarks.tpce.procedures.BrokerVolume;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TPCEBenchmark extends BenchmarkModule {
@@ -16,7 +18,11 @@ public class TPCEBenchmark extends BenchmarkModule {
 
     @Override
     protected List<Worker<? extends BenchmarkModule>> makeWorkersImpl() throws IOException {
-        return null;
+        List<Worker<? extends BenchmarkModule>> workers = new ArrayList<>();
+        for(int i = 0; i < workConf.getTerminals(); i++){
+            workers.add(new TPCEWorker(this, 0));
+        }
+        return workers;
     }
 
     @Override
@@ -26,6 +32,6 @@ public class TPCEBenchmark extends BenchmarkModule {
 
     @Override
     protected Package getProcedurePackageImpl() {
-        return null;
+        return BrokerVolume.class.getPackage();
     }
 }

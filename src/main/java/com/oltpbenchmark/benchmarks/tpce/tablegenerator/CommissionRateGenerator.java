@@ -35,7 +35,7 @@ import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
 
 public class CommissionRateGenerator extends TableGenerator {
 
-    private static final int columnsNum = 5;
+    private static final int columnsNum = 6;
     private final InputFileHandler comm_file;
     private int counter = 0;
     private final int table_size;

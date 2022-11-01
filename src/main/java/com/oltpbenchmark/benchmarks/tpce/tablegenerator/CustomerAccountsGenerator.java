@@ -53,7 +53,7 @@ public class CustomerAccountsGenerator extends TableGenerator {
 
     private int accsToGenerate; // every customer can have a different number of accs
     private int accsGenerated; // the number of accs already generated for the current customer
-    private final CustomerGenerator customerGenerator; // is used for geenrating just customer ids
+    private CustomerGenerator customerGenerator; // is used for geenrating just customer ids
     private final EGenRandom rnd;
 
     /*
@@ -79,6 +79,7 @@ public class CustomerAccountsGenerator extends TableGenerator {
 
         // do not need the Table for this. Nasty, though. Have to use type casting since we need specific functions
         customerGenerator = (CustomerGenerator)generator.getTableGen(TPCEConstants.TABLENAME_CUSTOMER);
+
         rnd = new EGenRandom(EGenRandom.RNG_SEED_TABLE_DEFAULT);
 
         taxableNames = generator.getInputFile(TPCEGenerator.InputFile.TAXACC);
@@ -181,12 +182,14 @@ public class CustomerAccountsGenerator extends TableGenerator {
         if (accsToGenerate == accsGenerated) {
             long cid = customerGenerator.generateCustomerId();
 
+
             accsGenerated = 0;
             accsToGenerate = getNumberofAccounts(cid, CustomerSelection.getTier(cid).ordinal() + 1);
             startingAccId = getStartingAccId(cid);
         }
 
         accsGenerated++;
+
 
         return startingAccId + accsGenerated - 1;
     }
@@ -265,6 +268,8 @@ public class CustomerAccountsGenerator extends TableGenerator {
         Object tuple[] = new Object[columnsNum];
 
         long accId = generateAccountId();
+
+
         long cid = customerGenerator.getCurrentCId();
         TaxStatus tax = getAccountTaxStatus(accId);
 

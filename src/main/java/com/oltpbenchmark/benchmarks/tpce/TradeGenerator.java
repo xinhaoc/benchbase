@@ -29,6 +29,7 @@
 
 package com.oltpbenchmark.benchmarks.tpce;
 
+import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.benchmarks.tpce.emulator.MEESecurity;
 import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
 import com.oltpbenchmark.benchmarks.tpce.pojo.HoldingsAndTrades;
@@ -36,6 +37,11 @@ import com.oltpbenchmark.benchmarks.tpce.tablegenerator.*;
 import com.oltpbenchmark.benchmarks.tpce.utils.EGenDate;
 import com.oltpbenchmark.benchmarks.tpce.utils.EGenMoney;
 import com.oltpbenchmark.benchmarks.tpce.utils.EGenRandom;
+import com.oltpbenchmark.benchmarks.tpce.TPCEGenerator.InputFile;
+import com.oltpbenchmark.benchmarks.tpce.utils.TimestampType;
+import com.oltpbenchmark.benchmarks.tpce.tablegenerator.StatusTypeGenerator.*;
+import org.apache.commons.lang3.NotImplementedException;
+import com.oltpbenchmark.benchmarks.tpce.tablegenerator.CustomerSelection.TierId;
 
 import java.util.*;
 
@@ -51,6 +57,7 @@ import java.util.*;
  * @author akalinin
  */
 public class TradeGenerator implements Iterator<Object[]> {
+    private final BenchmarkModule benchmarkModule;
     public enum TradeType {
         eMarketBuy,
         eMarketSell,
@@ -64,7 +71,7 @@ public class TradeGenerator implements Iterator<Object[]> {
 
         // customer that executes the trade
         public long customer;
-        public CustomerSelection.TierId customerTier;
+        public TierId customerTier;
 
         public long accId; // account for the trade
         public long secFileIndex; // symbol record from the security file
@@ -229,13 +236,12 @@ public class TradeGenerator implements Iterator<Object[]> {
     private final TradeInfoComparator tradeComparator = new TradeInfoComparator();
     private PriorityQueue<TradeInfo> currentTrades = new PriorityQueue<TradeInfo>(11, tradeComparator);
 
-    private final Database catalogDb;
 
     /**
-     * @param catalog_tbl
      * @param generator
      */
-    public TradeGenerator(TPCEGenerator generator, Database catalogDb) {
+    public TradeGenerator(TPCEGenerator generator, BenchmarkModule benchmarkModule) {
+        this.benchmarkModule = benchmarkModule;
         int scalingFactor = generator.getScalingFactor();
         int hoursOfInitialTrades = generator.getInitTradeDays() * 8; // 8 hours per work day
 
@@ -256,14 +262,13 @@ public class TradeGenerator implements Iterator<Object[]> {
 
         custSelection = new CustomerSelection(rnd, 0, 0, 100, generator.getStartCustomer(), TPCEConstants.DEFAULT_LOAD_UNIT);
         holdsGenerator = new HoldingsAndTrades(generator);
-        secGenerator = (SecurityGenerator)generator.getTableGen(TPCEConstants.TABLENAME_SECURITY, null);
-        brokerGenerator = new BrokerGenerator(catalogDb.getTables().get(TPCEConstants.TABLENAME_BROKER), generator);
+        secGenerator = (SecurityGenerator)generator.getTableGen(TPCEConstants.TABLENAME_SECURITY);
+        brokerGenerator = new BrokerGenerator(generator);
 
         meeSecurity = new MEESecurity();
 
         startFromCustomer = generator.getStartCustomer() + TPCEConstants.IDENT_SHIFT;
 
-        this.catalogDb = catalogDb;
 
         startTime = EGenDate.getDateFromTime(TPCEConstants.initialTradePopulationBaseYear,
                 TPCEConstants.initialTradePopulationBaseMonth,
@@ -273,9 +278,9 @@ public class TradeGenerator implements Iterator<Object[]> {
                 TPCEConstants.initialTradePopulationBaseSecond,
                 TPCEConstants.initialTradePopulationBaseFraction);
 
-        custAccGenerator = (CustomerAccountsGenerator) generator.getTableGen(TPCEConstants.TABLENAME_CUSTOMER_ACCOUNT, null);
-        addrGenerator = (AddressGenerator) generator.getTableGen(TPCEConstants.TABLENAME_ADDRESS, null);
-        custTaxGenerator = (CustomerTaxRatesGenerator) generator.getTableGen(TPCEConstants.TABLENAME_CUSTOMER_TAXRATE, null);
+        custAccGenerator = (CustomerAccountsGenerator) generator.getTableGen(TPCEConstants.TABLENAME_CUSTOMER_ACCOUNT);
+        addrGenerator = (AddressGenerator) generator.getTableGen(TPCEConstants.TABLENAME_ADDRESS);
+        custTaxGenerator = (CustomerTaxRatesGenerator) generator.getTableGen(TPCEConstants.TABLENAME_CUSTOMER_TAXRATE);
 
         chargeFile = generator.getInputFile(InputFile.CHARGE);
         tradeTypeFile = generator.getInputFile(InputFile.TRADETYPE);
@@ -1100,7 +1105,8 @@ public class TradeGenerator implements Iterator<Object[]> {
     }
 
     private int getColumnNum(String tableName) {
-        return catalogDb.getTables().get(tableName).getColumns().size();
+        return benchmarkModule.getCatalog().getTable(tableName).getColumnCount();
+//        return catalogDb.getTables().get(tableName).getColumns().size();
     }
 
     private Date getCurrentTradeCompletionTime() {

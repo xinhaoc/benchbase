@@ -11,7 +11,7 @@ public abstract class InputFileHandler {
     private BufferedReader reader;
     private static final Logger LOG = Logger.getLogger(InputFileHandler.class);
 
-    public InputFileHandler(File inputFile){
+    public InputFileHandler(File inputFile) {
         this.inputFile = inputFile;
     }
 

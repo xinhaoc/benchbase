@@ -45,6 +45,8 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     private LatencyRecord latencies;
     private final Statement currStatement;
 
+    private boolean generateProcedureByOwn = false;
+
     // Interval requests used by the monitor
     private final AtomicInteger intervalRequests = new AtomicInteger(0);
 
@@ -232,7 +234,14 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
             // Grab some work and update the state, in case it changed while we
             // waited.
 
+            //add an option to generate procedue by own generator
             SubmittedProcedure pieceOfWork = workloadState.fetchWork();
+
+            if(generateProcedureByOwn){
+                pieceOfWork = generateProcedure(pieceOfWork);
+            }
+
+
 
             prePhase = workloadState.getCurrentPhase();
             if (prePhase == null) {
@@ -555,5 +564,7 @@ public abstract class Worker<T extends BenchmarkModule> implements Runnable {
     protected long getPostExecutionWaitInMillis(TransactionType type) {
         return 0;
     }
+
+    protected SubmittedProcedure generateProcedure(SubmittedProcedure originPieceOfWork){return originPieceOfWork;}
 
 }

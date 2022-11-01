@@ -65,8 +65,8 @@ public interface DBConnection {
 
     void execute(Connection conn, TDataMaintenanceTxnInput tDataMaintenanceTxnInput);
 
-    void execute(TMarketFeedFrame1Input tMarketFeedFrame1Input, TMarketFeedFrame1Output tMarketFeedFrame1Output,
-                 CSendToMarketInterface cSendToMarketInterface);
+//    void execute(TMarketFeedFrame1Input tMarketFeedFrame1Input, TMarketFeedFrame1Output tMarketFeedFrame1Output,
+//                 CSendToMarketInterface cSendToMarketInterface);
 
     void execute(Connection conn, TMarketWatchTxnInput tMarketWatchFrame1Input, TMarketWatchFrame1Output tMarketWatchFrame1Output);
 
@@ -102,7 +102,7 @@ public interface DBConnection {
 
     void rollback();
 
-    void setBrokerageHouse(CBrokerageHouse cBrokerageHouse);
+//    void setBrokerageHouse(CBrokerageHouse cBrokerageHouse);
 
     void setReadCommitted();
     void setReadUncommitted();

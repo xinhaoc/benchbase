@@ -1,4 +1,4 @@
 package com.oltpbenchmark.benchmarks.tpce.procedures;
 
-public class TradeLookup {
+public class TradeLookUp {
 }

@@ -29,10 +29,7 @@
 
 package com.oltpbenchmark.benchmarks.tpce;
 
-import com.oltpbenchmark.benchmarks.tpce.fileparser.ArrayInputFileHandler;
-import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
-import com.oltpbenchmark.benchmarks.tpce.fileparser.FlatInputFileHandler;
-import com.oltpbenchmark.benchmarks.tpce.fileparser.WeightInputFileHandler;
+import com.oltpbenchmark.benchmarks.tpce.fileparser.*;
 import com.oltpbenchmark.benchmarks.tpce.tablegenerator.*;
 import org.apache.log4j.Logger;
 
@@ -153,30 +150,30 @@ public class TPCEGenerator {
         /*
          * Create input file handlers
          */
-        inputFiles.put(InputFile.AREA, new WeightInputFileHandler(new File(inputDir + File.separator + AREA_FILE)));
-        inputFiles.put(InputFile.COMPANYSP, new WeightInputFileHandler(new File(inputDir + File.separator + COMPANYSP_FILE)));
-        inputFiles.put(InputFile.FEMFNAME, new WeightInputFileHandler(new File(inputDir + File.separator + FEMFNAME_FILE)));
-        inputFiles.put(InputFile.LNAME, new WeightInputFileHandler(new File(inputDir + File.separator + LNAME_FILE)));
-        inputFiles.put(InputFile.MALEFNAME, new WeightInputFileHandler(new File(inputDir + File.separator + MALEFNAME_FILE)));
-        inputFiles.put(InputFile.STNAME, new WeightInputFileHandler(new File(inputDir + File.separator + STNAME_FILE)));
-        inputFiles.put(InputFile.STSUFFIX, new WeightInputFileHandler(new File(inputDir + File.separator + STSUFFIX_FILE)));
-        inputFiles.put(InputFile.ZIPCODE, new WeightInputFileHandler(new File(inputDir + File.separator + ZIPCODE_FILE)));
+        inputFiles.put(InputFile.AREA, new WeightedFile(new File(inputDir + File.separator + AREA_FILE)));
+        inputFiles.put(InputFile.COMPANYSP, new WeightedFile(new File(inputDir + File.separator + COMPANYSP_FILE)));
+        inputFiles.put(InputFile.FEMFNAME, new WeightedFile(new File(inputDir + File.separator + FEMFNAME_FILE)));
+        inputFiles.put(InputFile.LNAME, new WeightedFile(new File(inputDir + File.separator + LNAME_FILE)));
+        inputFiles.put(InputFile.MALEFNAME, new WeightedFile(new File(inputDir + File.separator + MALEFNAME_FILE)));
+        inputFiles.put(InputFile.STNAME, new WeightedFile(new File(inputDir + File.separator + STNAME_FILE)));
+        inputFiles.put(InputFile.STSUFFIX, new WeightedFile(new File(inputDir + File.separator + STSUFFIX_FILE)));
+        inputFiles.put(InputFile.ZIPCODE, new WeightedFile(new File(inputDir + File.separator + ZIPCODE_FILE)));
 
-        inputFiles.put(InputFile.CHARGE, new FlatInputFileHandler(new File(inputDir + File.separator + CHARGE_FILE)));
-        inputFiles.put(InputFile.COMMRATE, new FlatInputFileHandler(new File(inputDir + File.separator + COMMRATE_FILE)));
-        inputFiles.put(InputFile.COMPANY, new FlatInputFileHandler(new File(inputDir + File.separator + COMPANY_FILE)));
-        inputFiles.put(InputFile.COMPANYCOMP, new FlatInputFileHandler(new File(inputDir + File.separator + COMPANYCOMP_FILE)));
-        inputFiles.put(InputFile.EXCHANGE, new FlatInputFileHandler(new File(inputDir + File.separator + EXCHANGE_FILE)));
-        inputFiles.put(InputFile.INDUSTRY, new FlatInputFileHandler(new File(inputDir + File.separator + INDUSTRY_FILE)));
-        inputFiles.put(InputFile.NONTAXACC, new FlatInputFileHandler(new File(inputDir + File.separator + NONTAXACC_FILE)));
-        inputFiles.put(InputFile.SECTOR, new FlatInputFileHandler(new File(inputDir + File.separator + SECTOR_FILE)));
-        inputFiles.put(InputFile.SECURITY, new FlatInputFileHandler(new File(inputDir + File.separator + SECURITY_FILE)));
-        inputFiles.put(InputFile.STATUS, new FlatInputFileHandler(new File(inputDir + File.separator + STATUS_FILE)));
-        inputFiles.put(InputFile.TAXACC, new FlatInputFileHandler(new File(inputDir + File.separator + TAXACC_FILE)));
-        inputFiles.put(InputFile.TRADETYPE, new FlatInputFileHandler(new File(inputDir + File.separator + TRADETYPE_FILE)));
+        inputFiles.put(InputFile.CHARGE, new FlatFile(new File(inputDir + File.separator + CHARGE_FILE)));
+        inputFiles.put(InputFile.COMMRATE, new FlatFile(new File(inputDir + File.separator + COMMRATE_FILE)));
+        inputFiles.put(InputFile.COMPANY, new FlatFile(new File(inputDir + File.separator + COMPANY_FILE)));
+        inputFiles.put(InputFile.COMPANYCOMP, new FlatFile(new File(inputDir + File.separator + COMPANYCOMP_FILE)));
+        inputFiles.put(InputFile.EXCHANGE, new FlatFile(new File(inputDir + File.separator + EXCHANGE_FILE)));
+        inputFiles.put(InputFile.INDUSTRY, new FlatFile(new File(inputDir + File.separator + INDUSTRY_FILE)));
+        inputFiles.put(InputFile.NONTAXACC, new FlatFile(new File(inputDir + File.separator + NONTAXACC_FILE)));
+        inputFiles.put(InputFile.SECTOR, new FlatFile(new File(inputDir + File.separator + SECTOR_FILE)));
+        inputFiles.put(InputFile.SECURITY, new FlatFile(new File(inputDir + File.separator + SECURITY_FILE)));
+        inputFiles.put(InputFile.STATUS, new FlatFile(new File(inputDir + File.separator + STATUS_FILE)));
+        inputFiles.put(InputFile.TAXACC, new FlatFile(new File(inputDir + File.separator + TAXACC_FILE)));
+        inputFiles.put(InputFile.TRADETYPE, new FlatFile(new File(inputDir + File.separator + TRADETYPE_FILE)));
 
-        inputFiles.put(InputFile.TAXCOUNTRY, new ArrayInputFileHandler(new File(inputDir + File.separator + TAXCOUNTRY_FILE)));
-        inputFiles.put(InputFile.TAXDIV, new ArrayInputFileHandler(new File(inputDir + File.separator + TAXDIV_FILE)));
+        inputFiles.put(InputFile.TAXCOUNTRY, new ArrayFile(new File(inputDir + File.separator + TAXCOUNTRY_FILE)));
+        inputFiles.put(InputFile.TAXDIV, new ArrayFile(new File(inputDir + File.separator + TAXDIV_FILE)));
 
         this.currentCustomers = total_customers;
         this.customerStartId = TPCEConstants.DEFAULT_START_CUSTOMER_ID;
@@ -193,7 +190,6 @@ public class TPCEGenerator {
      * parameters, this function must be called first and then the generators created.
      *
      * @param numCustomers The number of customers
-     * @param startCustomer The starting customer number
      */
     public void changeSessionParams(long numCustomers, long startCustomer) {
         if (numCustomers <= 0 || numCustomers % TPCEConstants.DEFAULT_LOAD_UNIT != 0) {
@@ -220,6 +216,12 @@ public class TPCEGenerator {
         return customerStartId;
     }
 
+    public void setStartCustomer(long startCustumer){
+        this.customerStartId = startCustumer;
+    }
+
+
+
     // the number of companies depends on the total number of customers
     public long getCompanyCount(long customersNum) {
         return customersNum / TPCEConstants.DEFAULT_LOAD_UNIT * TPCEConstants.DEFAULT_COMPANIES_PER_UNIT;
@@ -241,6 +243,7 @@ public class TPCEGenerator {
         try {
             Constructor<?> ctor = genClasses.get(tableName).getDeclaredConstructor(TPCEGenerator.class);
             gen = (TableGenerator)ctor.newInstance(this);
+
         }
         catch (NoSuchMethodException e) {
             LOG.error("Cannot create a generator for: '" + tableName + "' -- no constructor");

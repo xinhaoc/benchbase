@@ -27,58 +27,59 @@
  *  OTHER DEALINGS IN THE SOFTWARE.                                        *
  ***************************************************************************/
 
-package com.oltpbenchmark.benchmarks.tpce.tablegenerator;
+package com.oltpbenchmark.benchmarks.tpce.fileparser;
 
-import com.oltpbenchmark.benchmarks.tpce.TPCEConstants;
-import com.oltpbenchmark.benchmarks.tpce.TPCEGenerator;
-import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class CompanyCompetitorsGenerator extends TableGenerator {
+public class ArrayFile extends InputFileHandler {
 
-    private static final int columnsNum = 3;
-    private final long companyCompsTotal;
-    private final long companyCompsStart;
-    private long counter;
+    protected List<List<String[]>> tuples_list = new ArrayList<List<String[]>>();
 
-    private final InputFileHandler compCompFile;
-    private final int compCompRecords;
-
-    public CompanyCompetitorsGenerator(TPCEGenerator generator) {
-        super(generator);
-
-        companyCompsTotal = generator.getCompanyCompetitorCount(generator.getCustomersNum());
-        companyCompsStart = generator.getCompanyCompetitorCount(generator.getStartCustomer());
-
-        counter = companyCompsStart;
-
-        compCompFile = generator.getInputFile(TPCEGenerator.InputFile.COMPANYCOMP);
-        compCompRecords = compCompFile.getRecordsNum();
-
+    public ArrayFile(File inputFile) {
+        super(inputFile);
     }
 
     @Override
-    public boolean hasNext() {
-        return counter < companyCompsStart + companyCompsTotal;
+    protected void insertTuple(String[] tuple) {
+        // treat first element as index
+        Integer index = Integer.valueOf(tuple[0]) - 1; // indexes in the file are 1-based
+        String[] new_tuple = Arrays.copyOfRange(tuple, 1, tuple.length);
+
+        if (index >= tuples_list.size()) {
+            List<String[]> tuples = new ArrayList<String[]>();
+            tuples_list.add(tuples);
+        }
+
+        tuples_list.get(tuples_list.size() - 1).add(new_tuple);
+    }
+
+    /*
+     * Strictly, we do not need this for this type of file, but why not?
+     */
+    @Override
+    public String[] getTupleByIndex(int index) {
+        int total_ind = tuples_list.get(0).size() - 1, list_ind = 0;
+
+        while (total_ind < index) {
+            list_ind++;
+            total_ind += tuples_list.get(list_ind).size();
+        }
+
+        int ind = index - (total_ind - tuples_list.get(list_ind).size() + 1);
+
+        return tuples_list.get(list_ind).get(ind);
     }
 
     @Override
-    public Object[] next() {
-        Object tuple[] = new Object[columnsNum];
+    public List<String[]> getTuplesByIndex(int index) {
+        return tuples_list.get(index);
+    }
 
-        /*
-         * Note that the number of company competitors to generate may be more that the number in the file.
-         * That is why it wraps around every 15000 records (the number of records in the file).
-         */
-        String[] compCompRecord = compCompFile.getTupleByIndex((int)(counter % compCompRecords));
-        long coId = Long.valueOf(compCompRecord[0]) + TPCEConstants.IDENT_SHIFT + counter / compCompRecords * compCompRecords;
-        long coCompId = Long.valueOf(compCompRecord[1]) + TPCEConstants.IDENT_SHIFT + counter / compCompRecords * compCompRecords;
-
-        tuple[0] = coId; // cp_co_id
-        tuple[1] = coCompId; // cp_comp_id
-        tuple[2] = compCompRecord[2]; // cp_in_id
-
-        counter++;
-
-        return tuple;
+    @Override
+    public int getRecordsNum() {
+        return tuples_list.size();
     }
 }
