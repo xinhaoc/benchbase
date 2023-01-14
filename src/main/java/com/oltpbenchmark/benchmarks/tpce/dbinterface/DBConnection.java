@@ -25,8 +25,10 @@ import com.oltpbenchmark.benchmarks.tpce.inputdo.traderesult.*;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeupdate.TTradeUpdateFrame1Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeupdate.TTradeUpdateFrame2Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeupdate.TTradeUpdateFrame3Input;
+import com.oltpbenchmark.benchmarks.tpce.outputdo.TDataMaintenanceTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.TMarketWatchFrame1Output;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.marketwatch.TMarketWatchTxnInput;
+import com.oltpbenchmark.benchmarks.tpce.outputdo.TTradeCleanupTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.brokervolume.TBrokerVolumeFrame1Output;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.customerposition.TCustomerPositionFrame1Output;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.customerposition.TCustomerPositionFrame2Output;
@@ -63,42 +65,41 @@ public interface DBConnection {
     void execute(Connection conn, TCustomerPositionFrame2Input tCustomerPositionFrame2Input,
                  TCustomerPositionFrame2Output tCustomerPositionFrame2Output);
 
-    void execute(Connection conn, TDataMaintenanceTxnInput tDataMaintenanceTxnInput);
+    void execute(Connection conn, TDataMaintenanceTxnInput tDataMaintenanceTxnInput, TDataMaintenanceTxnOutput tDataMaintenanceTxnOutput);
 
-//    void execute(TMarketFeedFrame1Input tMarketFeedFrame1Input, TMarketFeedFrame1Output tMarketFeedFrame1Output,
-//                 CSendToMarketInterface cSendToMarketInterface);
+    void execute(Connection conn, TMarketFeedFrame1Input tMarketFeedFrame1Input, TMarketFeedFrame1Output tMarketFeedFrame1Output);
 
     void execute(Connection conn, TMarketWatchTxnInput tMarketWatchFrame1Input, TMarketWatchFrame1Output tMarketWatchFrame1Output);
 
     void execute(Connection conn, TSecurityDetailTxnInput tSecurityDetailFrame1Input,
                  TSecurityDetailFrame1Output tSecurityDetailFrame1Output);
 
-    void execute(Connection conn, TTradeCleanupTxnInput tTradeCleanupFrame1Input);
+    void execute(Connection conn, TTradeCleanupTxnInput tTradeCleanupFrame1Input, TTradeCleanupTxnOutput tTradeCleanupTxnOutput);
 
     void execute(Connection conn, TTradeLookupFrame1Input tTradeLookupFrame1Input, TTradeLookupFrame1Output tTradeLookupFrame1Output);
     void execute(Connection conn, TTradeLookupFrame2Input tTradeLookupFrame2Input, TTradeLookupFrame2Output tTradeLookupFrame2Output);
     void execute(Connection conn, TTradeLookupFrame3Input tTradeLookupFrame3Input, TTradeLookupFrame3Output tTradeLookupFrame3Output);
     void execute(Connection conn, TTradeLookupFrame4Input tTradeLookupFrame4Input, TTradeLookupFrame4Output tTradeLookupFrame4Output);
 
-    void execute(TTradeOrderFrame1Input tTradeOrderFrame1Input, TTradeOrderFrame1Output tTradeOrderFrame1Output);
-    void execute(TTradeOrderFrame2Input tTradeOrderFrame2Input, TTradeOrderFrame2Output tTradeOrderFrame2Output);
-    void execute(TTradeOrderFrame3Input tTradeOrderFrame3Input, TTradeOrderFrame3Output tTradeOrderFrame3Output);
-    void execute(TTradeOrderFrame4Input tTradeOrderFrame4Input, TTradeOrderFrame4Output tTradeOrderFrame4Output);
+    void execute(Connection conn, TTradeOrderFrame1Input tTradeOrderFrame1Input, TTradeOrderFrame1Output tTradeOrderFrame1Output);
+    void execute(Connection conn, TTradeOrderFrame2Input tTradeOrderFrame2Input, TTradeOrderFrame2Output tTradeOrderFrame2Output);
+    void execute(Connection conn, TTradeOrderFrame3Input tTradeOrderFrame3Input, TTradeOrderFrame3Output tTradeOrderFrame3Output);
+    void execute(Connection conn, TTradeOrderFrame4Input tTradeOrderFrame4Input, TTradeOrderFrame4Output tTradeOrderFrame4Output);
 
-    void execute(TTradeResultFrame1Input tTradeResultFrame1Input, TTradeResultFrame1Output tTradeResultFrame1Output);
-    void execute(TTradeResultFrame2Input tTradeResultFrame2Input, TTradeResultFrame2Output tTradeResultFrame2Output);
-    void execute(TTradeResultFrame3Input tTradeResultFrame3Input, TTradeResultFrame3Output tTradeResultFrame3Output);
-    void execute(TTradeResultFrame4Input tTradeResultFrame4Input, TTradeResultFrame4Output tTradeResultFrame4Output);
-    void execute(TTradeResultFrame5Input tTradeResultFrame5Input);
-    void execute(TTradeResultFrame6Input tTradeResultFrame6Input, TTradeResultFrame6Output tTradeResultFrame6Output);
+    void execute(Connection conn, TTradeResultFrame1Input tTradeResultFrame1Input, TTradeResultFrame1Output tTradeResultFrame1Output);
+    void execute(Connection conn, TTradeResultFrame2Input tTradeResultFrame2Input, TTradeResultFrame2Output tTradeResultFrame2Output);
+    void execute(Connection conn, TTradeResultFrame3Input tTradeResultFrame3Input, TTradeResultFrame3Output tTradeResultFrame3Output);
+    void execute(Connection conn, TTradeResultFrame4Input tTradeResultFrame4Input, TTradeResultFrame4Output tTradeResultFrame4Output);
+    void execute(Connection conn, TTradeResultFrame5Input tTradeResultFrame5Input);
+    void execute(Connection conn, TTradeResultFrame6Input tTradeResultFrame6Input, TTradeResultFrame6Output tTradeResultFrame6Output);
 
-    void execute(TTradeStatusTxnInput tTradeStatusFrame1Input, TTradeStatusFrame1Output tTradeStatusFrame1Output);
+    void execute(Connection conn, TTradeStatusTxnInput tTradeStatusFrame1Input, TTradeStatusFrame1Output tTradeStatusFrame1Output);
 
-    void execute(TTradeUpdateFrame1Input tTradeUpdateFrame1Input, TTradeUpdateFrame1Output tTradeUpdateFrame1Output);
-    void execute(TTradeUpdateFrame2Input tTradeUpdateFrame2Input, TTradeUpdateFrame2Output tTradeUpdateFrame2Output);
-    void execute(TTradeUpdateFrame3Input tTradeUpdateFrame3Input, TTradeUpdateFrame3Output tTradeUpdateFrame3Output);
+    void execute(Connection conn, TTradeUpdateFrame1Input tTradeUpdateFrame1Input, TTradeUpdateFrame1Output tTradeUpdateFrame1Output);
+    void execute(Connection conn, TTradeUpdateFrame2Input tTradeUpdateFrame2Input, TTradeUpdateFrame2Output tTradeUpdateFrame2Output);
+    void execute(Connection conn, TTradeUpdateFrame3Input tTradeUpdateFrame3Input, TTradeUpdateFrame3Output tTradeUpdateFrame3Output);
 
-    void reconnect();
+//    void reconnect(Connection conn);
 
     void rollback();
 

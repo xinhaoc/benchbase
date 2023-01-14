@@ -2,6 +2,9 @@ package com.oltpbenchmark.benchmarks.tpce.emulator;
 
 import com.oltpbenchmark.benchmarks.tpce.TPCEConstants;
 import com.oltpbenchmark.benchmarks.tpce.TPCEGenerator;
+import com.oltpbenchmark.benchmarks.tpce.procedures.Datamaintaince;
+import com.oltpbenchmark.benchmarks.tpce.procedures.TPCEProcedure;
+import com.oltpbenchmark.benchmarks.tpce.procedures.TradeCleanup;
 import com.oltpbenchmark.benchmarks.tpce.sut.DMSUTInterface;
 import com.oltpbenchmark.benchmarks.tpce.fileparser.InputFileHandler;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.datamaintenance.TDataMaintenanceTxnInput;
@@ -92,9 +95,11 @@ public class DM {
         TierId iCustomerTier;
         Object[] customerId;
         customerId = customerSelection.genRandomCustomer();
+
         iCustomerId = Long.parseLong(customerId[0].toString());
-        iCustomerTier = (TierId) customerId[0];
+        iCustomerTier = (TierId) customerId[1];
         return (account.genRandomAccId(rnd, iCustomerId, iCustomerTier)[0]);
+
     }
 
     private long generateRandomCompanyId() {
@@ -163,7 +168,7 @@ public class DM {
         return (rnd.getSeed());
     }
 
-    public void DoTxn() {
+    public TPCEProcedure generateProcedure() {
         txnInput = new TDataMaintenanceTxnInput();
         txnInput.setTableName(DataMaintenanceTableName[dataMaintenanceTableNum]);
 
@@ -218,23 +223,20 @@ public class DM {
             case 11: // WATCH_ITEM
                 txnInput.setCId(generateRandomCustomerId());
                 break;
-
             default:
                 assert (false);
         }
-
-        sut.DataMaintenance(txnInput);
-
         dataMaintenanceTableNum = (dataMaintenanceTableNum + 1) % iDataMaintenanceTableCount;
+        return new Datamaintaince(txnInput);
     }
 
-    public void DoCleanupTxn() {
+    public TPCEProcedure generateCleanUpProcedure(){
         cleanupTxnInput = new TTradeCleanupTxnInput();
         cleanupTxnInput.setStart_trade_id((long) (((driverGlobalSettings.cur_iDaysOfInitialTrades * EGenDate.HoursPerWorkDay * EGenDate.SecondsPerHour * (driverGlobalSettings.cur_iActiveCustomerCount / driverGlobalSettings.cur_iScaleFactor)) * TPCEConstants.AbortTrade / 100) + 1));
-        System.arraycopy(statusType.getTupleByKey(eStatusTypeID.ePending.getVal())[0], 0, cleanupTxnInput.getSt_pending_id(), 0, TableConsts.cST_ID_len);
-        System.arraycopy(statusType.getTupleByKey(eStatusTypeID.eSubmitted.getVal())[0], 0, cleanupTxnInput.getSt_submitted_id(), 0, TableConsts.cST_ID_len);
-        System.arraycopy(statusType.getTupleByKey(eStatusTypeID.eCanceled.getVal())[0], 0, cleanupTxnInput.getSt_canceled_id(), 0, TableConsts.cST_ID_len);
-
-        sut.TradeCleanup(cleanupTxnInput);
+        cleanupTxnInput.setSt_pending_id(statusType.getTupleByKey(eStatusTypeID.ePending.getVal())[0]);
+        cleanupTxnInput.setSt_submitted_id(statusType.getTupleByKey(eStatusTypeID.eSubmitted.getVal())[0]);
+        cleanupTxnInput.setSt_canceled_id(statusType.getTupleByKey(eStatusTypeID.eCanceled.getVal())[0]);
+        return new TradeCleanup(cleanupTxnInput);
     }
+
 }

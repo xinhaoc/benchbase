@@ -21,11 +21,11 @@ CREATE OR REPLACE FUNCTION TradeCleanupFrame1 (
 						IN st_canceled_id	char(4),
 						IN st_pending_id	char(4),
 						IN st_submitted_id	char(4),
-						IN start_trade_id	TRADE_T) RETURNS smallint AS $$
+						IN start_trade_id	BIGINT) RETURNS smallint AS $$
 DECLARE
 	-- variables
-	trade_id	TRADE_T;
-	tr_trade_id	TRADE_T;
+	trade_id	BIGINT;
+	tr_trade_id	BIGINT;
 	now_dts		timestamp;
 
 	pending_list	refcursor;

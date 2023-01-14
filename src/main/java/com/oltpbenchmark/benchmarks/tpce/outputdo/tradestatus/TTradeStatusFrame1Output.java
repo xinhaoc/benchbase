@@ -8,42 +8,42 @@ import static com.oltpbenchmark.benchmarks.tpce.pojo.TxnHarnessStructs.max_trade
 
 public class TTradeStatusFrame1Output {
 
-    double[]              charge;
-    long[]              trade_id;
-    int []              trade_qty;
-    int               num_found;
+    double[] charge;
+    long[] trade_id;
+    int[] trade_qty;
+    int num_found;
     TimestampType[] trade_dts;
-    String[]                ex_name;
-    String[]                 exec_name;
-    String[]                 s_name;
-    String[]                 status_name;
-    String[]                 symbol;
-    String[]                 type_name;
-    String                broker_name;
-    String                cust_f_name;
-    String                cust_l_name;
+    String[] ex_name;
+    String[] exec_name;
+    String[] s_name;
+    String[] status_name;
+    String[] symbol;
+    String[] type_name;
+    String broker_name;
+    String cust_f_name;
+    String cust_l_name;
 
     public TTradeStatusFrame1Output() {
         charge = new double[max_trade_status_len];
-        trade_id  = new long[max_trade_status_len];
+        trade_id = new long[max_trade_status_len];
         trade_qty = new int[max_trade_status_len];
         trade_dts = new TimestampType[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++){
+        for (int i = 0; i < max_trade_status_len; i++) {
             trade_dts[i] =
                 new TimestampType(new GregorianCalendar(0, 0, 1, 0, 0, 0).getTime());
         }
         ex_name = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) ex_name[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) ex_name[i] = new String();
         exec_name = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) exec_name[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) exec_name[i] = new String();
         s_name = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) s_name[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) s_name[i] = new String();
         status_name = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) status_name[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) status_name[i] = new String();
         symbol = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) symbol[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) symbol[i] = new String();
         type_name = new String[max_trade_status_len];
-        for(int i = 0; i < max_trade_status_len; i++) type_name[i] = new String();
+        for (int i = 0; i < max_trade_status_len; i++) type_name[i] = new String();
 
         broker_name = new String();
         cust_f_name = new String();

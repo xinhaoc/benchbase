@@ -382,8 +382,6 @@ public class DBWorkload {
 
             // Generate the dialect map
             wrkld.init();
-
-
         }
 
 

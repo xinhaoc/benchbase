@@ -18,9 +18,10 @@
 
     <!-- specific configuration for tpc-e -->
     //todo file path
-    <loadfiles>data/tpce</loadfiles>>
+    <loadfiles>src/main/resources/data/tpce</loadfiles>>
     <totalcustomers>5000</totalcustomers>
     <initialdays>300</initialdays>
+    <functionpath>src/main/resources/benchmarks/tpce/pgsql/</functionpath>
 
     <!-- The workload -->
     <terminals>1</terminals>
@@ -28,7 +29,7 @@
         <work>
             <time>60</time>
             <rate>10000</rate>
-            <weights>10,10,10,10,10,10,10,10,10,10</weights>
+            <weights>100</weights>
         </work>
     </works>
 
@@ -36,35 +37,7 @@
     <!-- TPCE specific -->
     <transactiontypes>
         <transactiontype>
-            <name>SecurityDetail</name>
+            <name>TPCEProcedure</name>
         </transactiontype>
-        <transactiontype>
-            <name>BrokerVolume</name>
-        </transactiontype>
-        <transactiontype>
-            <name>CustomerPosition</name>
-        </transactiontype>
-        <transactiontype>
-            <name>MarketWatch</name>
-        </transactiontype>
-        <transactiontype>
-            <name>TradeStatus</name>
-        </transactiontype>
-        <transactiontype>
-            <name>TradeLookUp</name>
-        </transactiontype>
-        <transactiontype>
-            <name>TradeOrder</name>
-        </transactiontype>
-        <transactiontype>
-            <name>TradeUpdate</name>
-        </transactiontype>
-        <transactiontype>
-            <name>MarketFeed</name>
-        </transactiontype>
-        <transactiontype>
-            <name>TradeResult</name>
-        </transactiontype>
-
     </transactiontypes>
 </parameters>

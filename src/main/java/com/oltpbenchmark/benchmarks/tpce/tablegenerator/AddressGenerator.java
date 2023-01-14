@@ -87,7 +87,8 @@ public class AddressGenerator extends TableGenerator {
         zipFile = generator.getInputFile(TPCEGenerator.InputFile.ZIPCODE);
 
         // if we are generating another portion of customers, do not generate exchange/company addresses
-        setCounter(customersStart != TPCEConstants.DEFAULT_START_CUSTOMER_ID);
+        setCounter(customersStart != (TPCEConstants.DEFAULT_START_CUSTOMER_ID));
+//        setCounter(false);
     }
 
     public void setCounter(boolean customersOnly) {
@@ -97,7 +98,8 @@ public class AddressGenerator extends TableGenerator {
             totalAddresses = counter + customersNum;
         }
         else {
-            counter = customersStart - 1;
+            //counter = -1
+            counter = customersStart - 2;
             totalAddresses = counter + exchangeCount + companyCount + customersNum;
         }
     }

@@ -5,6 +5,7 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
 import com.oltpbenchmark.benchmarks.tpcc.TPCCWorker;
+import com.oltpbenchmark.benchmarks.tpcc.procedures.TPCCProcedure;
 import com.oltpbenchmark.benchmarks.tpce.emulator.CE;
 import com.oltpbenchmark.benchmarks.tpce.emulator.DM;
 import com.oltpbenchmark.benchmarks.tpce.emulator.MEE;
@@ -21,6 +22,9 @@ import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeorder.TTradeOrderTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.traderesult.TTradeResultTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeupdate.TTradeUpdateTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.log.BaseLogger;
+import com.oltpbenchmark.benchmarks.tpce.log.EGenLogFormatterTab;
+import com.oltpbenchmark.benchmarks.tpce.log.EGenLogger;
+import com.oltpbenchmark.benchmarks.tpce.procedures.TPCEProcedure;
 import com.oltpbenchmark.benchmarks.tpce.settings.TDriverCETxnSettings;
 import com.oltpbenchmark.benchmarks.tpce.sut.CESUTInterface;
 import com.oltpbenchmark.benchmarks.tpce.sut.DMSUTInterface;
@@ -55,75 +59,81 @@ public class TPCEWorker<EGenLogFormatterTab> extends Worker<TPCEBenchmark> {
     private TTradeStatusTxnInput tradeStatusTxnInput;
     private TTradeUpdateTxnInput tradeUpdateTxnInput;
     private TDriverCETxnSettings driverCETxnSettings;
-    private EGenLogFormatterTab logFormat;
+    private com.oltpbenchmark.benchmarks.tpce.log.EGenLogFormatterTab logFormat;
     private BaseLogger logger;
     private CE customerEmulator;
     private DM dataMaintenanceGenerator;
     private DMSUTInterface dataMaintenanceCallback;
-    private MEE marketExchangeGenerator;
+//    private MEE marketExchangeGenerator;
     private MEESUTInterface marketExchangeCallback;
     private SecurityHandler securityHandler;
+
+    private boolean runCLeanUp;
 
 
     public TPCEWorker(TPCEBenchmark benchmarkModule, int id) {
         super(benchmarkModule, id);
-//        logFormat = new EGenLogFormatterTab();
-//        logger = new EGenLogger(DriverType.eDriverEGenLoader, 0, logFormat);
-//        brokerVolumeTxnInput = new TBrokerVolumeTxnInput();
-//        customerPositionTxnInput = new TCustomerPositionTxnInput();
-//        dataMaintenanceTxnInput = new TDataMaintenanceTxnInput();
-//        marketFeedTxnInput = new TMarketFeedTxnInput();
-//        marketWatchTxnInput = new TMarketWatchTxnInput();
-//        securityDetailTxnInput = new TSecurityDetailTxnInput();
-//        tradeCleanupTxnInput = new TTradeCleanupTxnInput();
-//        tradeLookupTxnInput = new TTradeLookupTxnInput();
-//        tradeOrderTxnInput = new TTradeOrderTxnInput();
-//        tradeResultTxnInput = new TTradeResultTxnInput();
-//        tradeStatusTxnInput = new TTradeStatusTxnInput();
-//        tradeUpdateTxnInput = new TTradeUpdateTxnInput();
-//        driverCETxnSettings = new TDriverCETxnSettings();
-//
-//        File inputDir = new File(dataPath);
-//        TPCEGenerator inputFiles = new TPCEGenerator(inputDir, totalCustomerCount, scaleFactor, initialDays);
-//        securityHandler = new SecurityHandler(inputFiles);
-//
-//        //CE input generator
-//        sut = new CESUTInterface();
-//        customerEmulator = new CE(sut, logger, inputFiles, configuredCustomerCount, totalCustomerCount, scaleFactor, initialDays, 0, driverCETxnSettings);
-//
-//        // DataMaintenance input generator
-//        dataMaintenanceCallback = new DataMaintenanceCallback(dataMaintenanceTxnInput, tradeCleanupTxnInput);
-//        dataMaintenanceGenerator = new DM(dataMaintenanceCallback, logger, inputFiles, configuredCustomerCount, totalCustomerCount, scaleFactor, initialDays, 1);
-//
-//        //MarketExchange input generator
-//        marketExchangeCallback = new MarketExchangeCallback(tradeResultTxnInput, marketFeedTxnInput);
-//        marketExchangeGenerator = new MEE(0, marketExchangeCallback, logger, securityHandler, 1, configuredCustomerCount);
-//        marketExchangeGenerator.enableTickerTape();
-//
-//        timestamp = System.currentTimeMillis();
+        logFormat = new com.oltpbenchmark.benchmarks.tpce.log.EGenLogFormatterTab();
+        logger = new EGenLogger(TPCEConstants.DriverType.eDriverEGenLoader, 0, logFormat);
+        brokerVolumeTxnInput = new TBrokerVolumeTxnInput();
+        customerPositionTxnInput = new TCustomerPositionTxnInput();
+        dataMaintenanceTxnInput = new TDataMaintenanceTxnInput();
+        marketFeedTxnInput = new TMarketFeedTxnInput();
+        marketWatchTxnInput = new TMarketWatchTxnInput();
+        securityDetailTxnInput = new TSecurityDetailTxnInput();
+        tradeCleanupTxnInput = new TTradeCleanupTxnInput();
+        tradeLookupTxnInput = new TTradeLookupTxnInput();
+        tradeOrderTxnInput = new TTradeOrderTxnInput();
+        tradeResultTxnInput = new TTradeResultTxnInput();
+        tradeStatusTxnInput = new TTradeStatusTxnInput();
+        tradeUpdateTxnInput = new TTradeUpdateTxnInput();
+        driverCETxnSettings = new TDriverCETxnSettings();
+
+
+
+        String input_path = new File("src/main/resources/data/tpce" + File.separator).getAbsolutePath();
+
+        File inputDir = new File(input_path);
+        TPCEGenerator inputFiles = new TPCEGenerator(inputDir, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_SCALE_FACTOR, TPCEConstants.DEFAULT_INITIAL_DAYS);
+        securityHandler = new SecurityHandler(inputFiles);
+
+        sut = new CESUTInterface();
+        customerEmulator = new CE(sut, logger, inputFiles, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_SCALE_FACTOR, TPCEConstants.DEFAULT_INITIAL_DAYS, 0, driverCETxnSettings);
+        dataMaintenanceGenerator = new DM(dataMaintenanceCallback, logger, inputFiles, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_SCALE_FACTOR, TPCEConstants.DEFAULT_INITIAL_DAYS, 1);
+
+
+        timestamp = System.currentTimeMillis();
+        runCLeanUp = true;
     }
 
     @Override
     protected TransactionStatus executeWork(Connection conn, TransactionType txnType) throws UserAbortException, SQLException {
         try {
+
+            //run once
+            if(runCLeanUp){
+                TPCEProcedure cleanUpProcedure = dataMaintenanceGenerator.generateCleanUpProcedure();
+                cleanUpProcedure.run(conn);
+                runCLeanUp = false;
+            }
             //use type to do CE
-            //doTxn
-//            customerEmulator.doTxn(txnType.getId());
+            TPCEProcedure procedure = customerEmulator.generateProcedure();
+            procedure.run(conn);
             //do DataMaintenance per minute
             if (System.currentTimeMillis() - timestamp > TPCEConstants.DATA_MAINTENANCE_TIME_SPACE) {
-//                dm.dotxn();
+                procedure = dataMaintenanceGenerator.generateProcedure();
+                procedure.run(conn);
+                timestamp = System.currentTimeMillis();
             }
 
-        } catch (Exception e) {
 
+
+        } catch (Exception e) {
+            logger.sendToLogger("exe work error: " + e.getMessage());
         }
 
         return TransactionStatus.SUCCESS;
     }
 
-    //generate
-//    @Override
-//    protected SubmittedProcedure generateProcedure(SubmittedProcedure originPieceOfWork) {
-////        return new SubmittedProcedure(customerEmulator.getCETxnMixGenerator().generateNextTxnType());
-//    }
+
 }

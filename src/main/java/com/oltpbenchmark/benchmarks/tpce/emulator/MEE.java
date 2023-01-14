@@ -1,11 +1,20 @@
 package com.oltpbenchmark.benchmarks.tpce.emulator;
 
+import com.oltpbenchmark.benchmarks.tpce.TPCEConstants;
+import com.oltpbenchmark.benchmarks.tpce.TPCEGenerator;
+import com.oltpbenchmark.benchmarks.tpce.dbinterface.DBConnectionImpl;
+import com.oltpbenchmark.benchmarks.tpce.log.EGenLogFormatterTab;
+import com.oltpbenchmark.benchmarks.tpce.log.EGenLogger;
+import com.oltpbenchmark.benchmarks.tpce.pojo.ErrorCode;
 import com.oltpbenchmark.benchmarks.tpce.sut.MEESUTInterface;
 import com.oltpbenchmark.benchmarks.tpce.log.BaseLogger;
 import com.oltpbenchmark.benchmarks.tpce.settings.DriverMEESettings;
 import com.oltpbenchmark.benchmarks.tpce.tablegenerator.SecurityHandler;
+import com.oltpbenchmark.benchmarks.tpce.transactionsinterface.SUTInterfacesImpl;
 import com.oltpbenchmark.benchmarks.tpce.utils.EGenDate;
 
+import java.io.File;
+import java.sql.Connection;
 import java.util.Date;
 
 public class MEE {
@@ -17,7 +26,10 @@ public class MEE {
     private MEETradingFloor tradingFloor;
     private Date baseTime;
     private Date currentTime;
+
     public static final int NO_OUTSTANDING_TRADES = MEETradingFloor.NO_OUTSTANDING_TRADES;
+
+    private static MEE mee = new MEE(0, 1);
 
     private void AutoSetRNGSeeds(long uniqueID) {
         int baseYear, baseMonth, baseDay, millisec;
@@ -43,11 +55,37 @@ public class MEE {
         driverMEESettings.cur_TradingFloorRNGSeed = Seed;
     }
 
+    private MEE(int tradingTimeSoFar, long uniqueID) {
+        driverMEESettings = new DriverMEESettings(uniqueID, 0, 0, 0);
+        String input_path = new File("src/main/resources/data/tpce" + File.separator).getAbsolutePath();
+        File inputDir = new File(input_path);
+        TPCEGenerator inputFiles = new TPCEGenerator(inputDir, TPCEConstants.DEFAULT_NUM_CUSTOMERS, TPCEConstants.DEFAULT_SCALE_FACTOR, TPCEConstants.DEFAULT_INITIAL_DAYS);
+        inputFiles.parseInputFiles();
+        SecurityHandler securityHandler = new SecurityHandler(inputFiles);
+        sut = new MEESUTInterface();
+        EGenLogFormatterTab logFormat = new com.oltpbenchmark.benchmarks.tpce.log.EGenLogFormatterTab();
+        this.logger = new EGenLogger(TPCEConstants.DriverType.eDriverEGenLoader, 0, logFormat);
+        setBaseTime();
+        priceBoard = new MEEPriceBoard(tradingTimeSoFar, baseTime, currentTime, securityHandler, TPCEConstants.DEFAULT_NUM_CUSTOMERS);
+        tickerTape = new MEETickerTape(sut, priceBoard, baseTime, currentTime);
+        tradingFloor = new MEETradingFloor(sut, priceBoard, tickerTape, baseTime, currentTime);
+        logger.sendToLogger("MEE object constructed using c'tor 1 (valid for publication: YES).");
+        AutoSetRNGSeeds(uniqueID);
+        this.logger.sendToLogger(driverMEESettings);
+        enableTickerTape();
+
+    }
+
+    public static MEE getMee(){
+        return mee;
+    }
+
 
     public MEE(int tradingTimeSoFar, MEESUTInterface pSUT, BaseLogger logger, SecurityHandler securityFile, long uniqueID, int configuredCustomerCount) {
         driverMEESettings = new DriverMEESettings(uniqueID, 0, 0, 0);
         sut = pSUT;
         this.logger = logger;
+        setBaseTime();
         priceBoard = new MEEPriceBoard(tradingTimeSoFar, baseTime, currentTime, securityFile, configuredCustomerCount);
         tickerTape = new MEETickerTape(pSUT, priceBoard, baseTime, currentTime);
         tradingFloor = new MEETradingFloor(pSUT, priceBoard, tickerTape, baseTime, currentTime);
@@ -98,10 +136,10 @@ public class MEE {
         return (nextTime);
     }
 
-    public int submitTradeRequest(TTradeRequest pTradeRequest) {
+    public int submitTradeRequest(Connection connection, TTradeRequest pTradeRequest) {
         int nextTime;
         currentTime = new Date();
-        nextTime = tradingFloor.submitTradeRequest(pTradeRequest);
+        nextTime = tradingFloor.submitTradeRequest(connection, pTradeRequest);
         return (nextTime);
     }
 

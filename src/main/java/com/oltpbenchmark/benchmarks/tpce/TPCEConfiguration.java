@@ -21,4 +21,6 @@ public class TPCEConfiguration {
     public String getInitialDays(){return xmlConfig.getString("initialdays", null);}
 
     public String getScaleFactor(){return xmlConfig.getString("scalefactor", null);}
+
+    public String getFunctionPath(){return xmlConfig.getString("functionpath", null);}
 }

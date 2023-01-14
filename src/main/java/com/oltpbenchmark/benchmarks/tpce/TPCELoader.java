@@ -8,18 +8,26 @@ import com.oltpbenchmark.benchmarks.tpce.tablegenerator.CustomerGenerator;
 import com.oltpbenchmark.benchmarks.tpce.utils.GeneratorUtils;
 import com.oltpbenchmark.catalog.Table;
 import com.oltpbenchmark.util.SQLUtil;
+import com.oltpbenchmark.util.ScriptRunner;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+
 
 public class TPCELoader extends Loader<TPCEBenchmark> {
     private static final Logger LOG = Logger.getLogger(TPCELoader.class);
     protected final TPCEGenerator generator;
     private final TPCEConfiguration tpceConfiguration;
+
+    private String functionPath;
 
     /**
      * load tables
@@ -30,45 +38,51 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
     @Override
     public List<LoaderThread> createLoaderThreads() throws SQLException {
         List<LoaderThread> threads = new ArrayList<>();
+        final CountDownLatch itemLatch = new CountDownLatch(1);
 
-        //load fixed tables
+        //load function, fixed and scale tables
         try {
-            for (String fixTableName : TPCEConstants.FIXED_TABLES) {
-                LoaderThread thread = new LoaderThread(this.benchmark) {
-                    @Override
-                    public void load(Connection conn) throws SQLException {
-                        synchronized (this) {
-                            loadTable(conn, 1000, fixTableName);
+            LoaderThread thread = new LoaderThread(this.benchmark) {
+                @Override
+                public void load(Connection conn) throws SQLException {
+                    synchronized (this) {
+                        try {
+                            ScriptRunner runner = new ScriptRunner(conn, true, true);
+
+                            for (String function : TPCEConstants.FUNCTION_PATH) {
+                                String path = functionPath + function;
+                                System.out.println(path);
+                                conn.createStatement().execute(getCreateFunction(path));
+                            }
+
+                            for (String fixTableName : TPCEConstants.FIXED_TABLES) {
+                                loadTable(conn, 1000, fixTableName);
+                            }
+
+                            for (long start_idx = 0, cnt = generator.getTotalCustomers(); start_idx < cnt; start_idx += TPCEConstants.DEFAULT_LOAD_UNIT){
+                                generator.changeSessionParams(TPCEConstants.DEFAULT_LOAD_UNIT, start_idx + 1);
+                                for (String scalingTableName : TPCEConstants.SCALING_TABLES) {
+                                    loadTable(conn, 100, scalingTableName);
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.out.println("runner except: " + e.getLocalizedMessage() + e.getMessage());
                         }
                     }
-                };
-                threads.add(thread);
-            }
+                }
+
+                @Override
+                public void afterLoad() {
+                    itemLatch.countDown();
+                }
+            };
+            threads.add(thread);
         } catch (Exception e) {
-            LOG.error("Failed to generate and load fixed-sized tables", e);
+            LOG.error("Failed to load functions", e);
             System.exit(1);
         }
 
-        //load scaling tables
-        try {
-            for (long start_idx = 0, cnt = this.generator.getTotalCustomers(); start_idx < cnt; start_idx += TPCEConstants.DEFAULT_LOAD_UNIT) {
-                long finalStart_idx = start_idx;
 
-                LoaderThread thread = new LoaderThread(this.benchmark) {
-                    @Override
-                    public void load(Connection conn) throws SQLException {
-                        generator.changeSessionParams(TPCEConstants.DEFAULT_LOAD_UNIT, finalStart_idx + 1);
-                        for (String scalingTableName : TPCEConstants.SCALING_TABLES) {
-                            loadTable(conn, 100, scalingTableName);
-                        }
-                    }
-                };
-                threads.add(thread);
-            }
-        } catch (Exception e) {
-            LOG.error("Failed to generate and load fixed-sized tables", e);
-            System.exit(1);
-        }
 
         //load growing tables
         try {
@@ -76,9 +90,18 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
                 long finalStart_idx = start_idx;
                 LoaderThread thread = new LoaderThread(this.benchmark) {
                     @Override
+                    public void beforeLoad() {
+                        try {
+                            itemLatch.await();
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                    @Override
                     public void load(Connection conn) throws SQLException {
                         generator.changeSessionParams(TPCEConstants.DEFAULT_LOAD_UNIT, finalStart_idx + 1);
-                        loadGrowingTables(conn, 100);
+
+                        loadGrowingTables(conn, 100, finalStart_idx);
                     }
 
                 };
@@ -89,6 +112,7 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
             LOG.error("Failed to generate and load fixed-sized tables", e);
             System.exit(1);
         }
+
         return threads;
     }
 
@@ -118,6 +142,8 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
             initial_days = Integer.parseInt(tpceConfiguration.getInitialDays());
         }
 
+        this.functionPath = tpceConfiguration.getFunctionPath();
+
         // validating parameters
         if (total_customers <= 0 || total_customers % TPCEConstants.DEFAULT_LOAD_UNIT != 0) {
             throw new IllegalArgumentException("The total number of customers must be a positive integer multiple of the load unit size");
@@ -145,6 +171,24 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
         generator.parseInputFiles();
     }
 
+    private String getCreateFunction(String path) {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader input = null;
+        try {
+            String qLine = null;
+
+            input = new BufferedReader(new FileReader(path));
+            while ((qLine = input.readLine()) != null) {
+                sb.append(qLine);
+                sb.append("\n");
+            }
+            input.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return sb.toString();
+    }
+
     private PreparedStatement getInsertStatement(Connection conn, String tableName) throws SQLException {
         Table catalog_tbl = benchmark.getCatalog().getTable(tableName);
         String sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
@@ -152,17 +196,21 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
     }
 
 
-
     /**
      * @param
      */
     private void loadTable(Connection conn, int batch_size, String tableName) {
         LOG.debug("Loading records for table " + tableName + " in batches of " + batch_size);
+//        System.out.println("Loading records for table " + tableName + " in batches of " + batch_size);
+
         try (PreparedStatement preparedStatement = getInsertStatement(conn, tableName)) {
             int index = 0;
             boolean debug = true;
 
             Iterator<Object[]> table_gen = this.generator.getTableGen(tableName);
+//            if(tableName.equals("ADDRESS")){
+//                System.out.println(this.generator.getStartCustomer());
+//            }
 
             while (table_gen.hasNext()) {
                 Object tuple[] = table_gen.next();
@@ -205,63 +253,68 @@ public class TPCELoader extends Loader<TPCEBenchmark> {
     }
 
 
-    private void loadGrowingTables(Connection conn, int batchSize) {
-        LOG.debug("Loading records for growing tables in batches of " + batchSize);
-        boolean debug = true;
-        Map<String, Integer> growingTables = new HashMap<String, Integer>();
-        Map<String, PreparedStatement> preparedStatementMap = new HashMap<String, PreparedStatement>();
+    private void loadGrowingTables(Connection conn, int batchSize, long finalStart_idx) {
+        synchronized (this){
+            LOG.debug("Loading records for growing tables in batches of " + batchSize);
+            boolean debug = true;
+            Map<String, Integer> growingTables = new HashMap<String, Integer>();
+            Map<String, PreparedStatement> preparedStatementMap = new HashMap<String, PreparedStatement>();
 
-        try {
-            for (String tableName : TPCEConstants.GROWING_TABLES) {
-                growingTables.put(tableName, 0);
-                preparedStatementMap.put(tableName, getInsertStatement(conn, tableName));
-            }
+            System.out.println("exe growing");
+            System.out.println(finalStart_idx + 1);
+            System.out.println(generator.getStartCustomer());
 
-            TradeGenerator tableGen = new TradeGenerator(this.generator, this.benchmark);
-            while (tableGen.hasNext()) {
-                Object tuple[] = tableGen.next(); // tuple
-                String tableName = tableGen.getCurrentTable(); // table name the tuple is for
-                if (debug) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Object o : tuple) {
-                        sb.append(o.toString());
-                        sb.append('|');
+            try {
+                for (String tableName : TPCEConstants.GROWING_TABLES) {
+                    growingTables.put(tableName, 0);
+                    preparedStatementMap.put(tableName, getInsertStatement(conn, tableName));
+                }
+
+                TradeGenerator tradeGenerator = new TradeGenerator(this.generator, this.benchmark);
+                while (tradeGenerator.hasNext()) {
+                    Object tuple[] = tradeGenerator.next(); // tuple
+                    String tableName = tradeGenerator.getCurrentTable(); // table name the tuple is for
+                    if (debug) {
+                        StringBuilder sb = new StringBuilder();
+                        for (Object o : tuple) {
+                            sb.append(o.toString());
+                            sb.append('|');
+                        }
+                    }
+                    PreparedStatement preparedStatement = preparedStatementMap.get(tableName);
+                    if (preparedStatement == null) {
+                        //todo add logs
+                    }
+
+                    growingTables.put(tableName, growingTables.getOrDefault(tableName, 0) + 1);
+                    GeneratorUtils.addRow(preparedStatement, tuple, tableName);
+
+
+                    if (growingTables.get(tableName) % batchSize == 0) {
+                        LOG.debug("Storing batch of " + batchSize + " tuples for " + tableName + " [total=" + growingTables.get(tableName) + "]");
+                        preparedStatement.executeBatch();
+                        preparedStatement.clearBatch();
                     }
                 }
-                PreparedStatement preparedStatement = preparedStatementMap.get(tableName);
-                if (preparedStatement == null) {
-                    //todo add logs
+
+                // loading remaining (out-of-batch) tuples
+                for (Map.Entry<String, Integer> table : growingTables.entrySet()) {
+                    String tableName = table.getKey();
+                    int remainBatchs = table.getValue();
+
+
+                    if (remainBatchs > 0) {
+                        PreparedStatement preparedStatement = preparedStatementMap.get(tableName);
+                        preparedStatement.executeBatch();
+                        preparedStatement.executeBatch();
+                    }
+                    LOG.debug("Finished loading " + remainBatchs + " final tuples for " + tableName);
                 }
-
-                growingTables.put(tableName, growingTables.getOrDefault(tableName, 0) + 1);
-                GeneratorUtils.addRow(preparedStatement, tuple, tableName);
-
-
-                if (growingTables.get(tableName) % batchSize == 0) {
-                    LOG.debug("Storing batch of " + batchSize + " tuples for " + tableName + " [total=" + growingTables.get(tableName) + "]");
-                    preparedStatement.executeBatch();
-                    preparedStatement.clearBatch();
-                }
+            } catch (Exception ex) {
+                LOG.error("Failed to load growing tables", ex);
+                System.exit(1);
             }
-
-            // loading remaining (out-of-batch) tuples
-            for (Map.Entry<String, Integer> table : growingTables.entrySet()) {
-                String tableName = table.getKey();
-                int remainBatchs = table.getValue();
-
-
-                if (remainBatchs > 0) {
-                    PreparedStatement preparedStatement = preparedStatementMap.get(tableName);
-                    preparedStatement.executeBatch();
-                    preparedStatement.executeBatch();
-                }
-                LOG.debug("Finished loading " + remainBatchs + " final tuples for " + tableName);
-            }
-        } catch (Exception ex) {
-            LOG.error("Failed to load growing tables", ex);
-            System.exit(1);
         }
-
 
     }
 

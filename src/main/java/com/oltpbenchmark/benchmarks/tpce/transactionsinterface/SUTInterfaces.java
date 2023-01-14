@@ -2,7 +2,6 @@ package com.oltpbenchmark.benchmarks.tpce.transactionsinterface;
 
 import com.oltpbenchmark.benchmarks.tpce.emulator.TTradeRequest;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.TTradeStatusTxnInput;
-import com.oltpbenchmark.benchmarks.tpce.inputdo.brokervolume.TBrokerVolumeFrame1Input;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.brokervolume.TBrokerVolumeTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.cleanup.TTradeCleanupTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.inputdo.customerposition.TCustomerPositionTxnInput;
@@ -16,7 +15,6 @@ import com.oltpbenchmark.benchmarks.tpce.inputdo.traderesult.TTradeResultTxnInpu
 import com.oltpbenchmark.benchmarks.tpce.inputdo.tradeupdate.TTradeUpdateTxnInput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.TDataMaintenanceTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.TTradeCleanupTxnOutput;
-import com.oltpbenchmark.benchmarks.tpce.outputdo.brokervolume.TBrokerVolumeFrame1Output;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.brokervolume.TBrokerVolumeTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.customerposition.TCustomerPositionTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.marketfeed.TMarketFeedTxnOutput;
@@ -28,34 +26,31 @@ import com.oltpbenchmark.benchmarks.tpce.outputdo.traderesult.TTradeResultTxnOut
 import com.oltpbenchmark.benchmarks.tpce.outputdo.tradestatus.TTradeStatusTxnOutput;
 import com.oltpbenchmark.benchmarks.tpce.outputdo.tradeupdate.TTradeUpdateTxnOutput;
 
-import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface SUTInterfaces {
-    public void CBrokerVolume(TBrokerVolumeTxnInput input, TBrokerVolumeTxnOutput output);
+    public void CBrokerVolume(Connection connection, TBrokerVolumeTxnInput input, TBrokerVolumeTxnOutput output) throws SQLException;
 
-    public void CCustomerPosition(TCustomerPositionTxnInput input, TCustomerPositionTxnOutput output);
+    public void CCustomerPosition(Connection connection, TCustomerPositionTxnInput input, TCustomerPositionTxnOutput output) throws SQLException;
 
-    public void CDataMaintenance(TDataMaintenanceTxnInput input, TDataMaintenanceTxnOutput output);
+    public void CDataMaintenance(Connection connection, TDataMaintenanceTxnInput input, TDataMaintenanceTxnOutput output);
 
-    public void CMarketFeed(TMarketFeedTxnInput input, TMarketFeedTxnOutput output);
+    public void CMarketFeed(Connection connection, TMarketFeedTxnInput input, TMarketFeedTxnOutput output);
 
-    public void CMarketWatch(TMarketWatchTxnInput input, TMarketWatchTxnOutput output);
+    public void CMarketWatch(Connection connection, TMarketWatchTxnInput input, TMarketWatchTxnOutput output) throws SQLException;
 
-    public void CSecurityDetail(TSecurityDetailTxnInput input, TSecurityDetailTxnOutput output);
+    public void CSecurityDetail(Connection connection, TSecurityDetailTxnInput input, TSecurityDetailTxnOutput output) throws SQLException;
 
-    public void CSendToMarketInterface(TTradeRequest tTradeRequest);
+    public void CTradeCleanup(Connection connection, TTradeCleanupTxnInput input, TTradeCleanupTxnOutput output) throws SQLException;
 
-    public void CTradeCleanup(TTradeCleanupTxnInput input, TTradeCleanupTxnOutput output);
+    public void CTradeLookup(Connection connection, TTradeLookupTxnInput input, TTradeLookupTxnOutput output);
 
-    public void CTradeLookup(TTradeLookupTxnInput input, TTradeLookupTxnOutput output);
+    public void CTradeOrder(Connection connection, TTradeOrderTxnInput input, TTradeOrderTxnOutput output) throws SQLException;
 
-    public void CTradeOrder(TTradeOrderTxnInput input, TTradeOrderTxnOutput output);
+    public void CTradeStatus(Connection connection, TTradeStatusTxnInput input, TTradeStatusTxnOutput output) throws SQLException;
 
-    public void CTradeResult(TTradeResultTxnInput input, TTradeResultTxnOutput output);
-
-    public void CTradeStatus(TTradeStatusTxnInput input, TTradeStatusTxnOutput output);
-
-    public void CTradeUpdate(TTradeUpdateTxnInput input, TTradeUpdateTxnOutput output);
+    public void CTradeUpdate(Connection connection, TTradeUpdateTxnInput input, TTradeUpdateTxnOutput output);
 
 
 }

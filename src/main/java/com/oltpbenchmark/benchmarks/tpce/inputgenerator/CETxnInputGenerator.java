@@ -168,7 +168,10 @@ public class CETxnInputGenerator {
         sectorCount = sectors.getMaxKey();
         startFromCompany = companies.generateCompId();
 
-        maxActivePrePopulatedTradeID = (int) ((hoursOfInitialTrades * EGenDate.SecondsPerHour * (activeCustomerCount / scaleFactor)) * TPCEConstants.AbortTrade / 100);
+//        maxActivePrePopulatedTradeID = (int) ((hoursOfInitialTrades * EGenDate.SecondsPerHour * (activeCustomerCount / scaleFactor)) * TPCEConstants.AbortTrade / 100);
+        maxActivePrePopulatedTradeID = (int) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute * (activeCustomerCount / scaleFactor)) * TPCEConstants.AbortTrade / 100);
+//        maxActivePrePopulatedTradeID = (int)(( hoursOfInitialTrades * EGenDate.SecondsPerHour * ( activeCustomerCount / scaleFactor )) * TPCEConstants.AbortTrade / 100 );
+
         currentTradeID = new AtomicLong(maxActivePrePopulatedTradeID + 1);
         startTime = EGenDate.getDateFromTime(
             TPCEConstants.initialTradePopulationBaseYear,
@@ -192,15 +195,15 @@ public class CETxnInputGenerator {
 
     public void updateTunables() {
 
-        tradeLookupFrame2MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerHour) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame2)) * EGenDate.MsPerSecond;
-        tradeLookupFrame3MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerHour) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame3)) * EGenDate.MsPerSecond;
-        tradeLookupFrame4MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerHour) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame4)) * EGenDate.MsPerSecond;
+        tradeLookupFrame2MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame2)) * EGenDate.MsPerSecond;
+        tradeLookupFrame3MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame3)) * EGenDate.MsPerSecond;
+        tradeLookupFrame4MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute) - (driverCETxnSettings.TL_settings.cur_BackOffFromEndTimeFrame4)) * EGenDate.MsPerSecond;
 
-        tradeUpdateFrame2MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerHour) - (driverCETxnSettings.TU_settings.cur_BackOffFromEndTimeFrame2)) * EGenDate.MsPerSecond;
-        tradeUpdateFrame3MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerHour) - (driverCETxnSettings.TU_settings.cur_BackOffFromEndTimeFrame3)) * EGenDate.MsPerSecond;
+        tradeUpdateFrame2MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute) - (driverCETxnSettings.TU_settings.cur_BackOffFromEndTimeFrame2)) * EGenDate.MsPerSecond;
+        tradeUpdateFrame3MaxTimeInMilliSeconds = (long) ((hoursOfInitialTrades * EGenDate.SecondsPerMinute) - (driverCETxnSettings.TU_settings.cur_BackOffFromEndTimeFrame3)) * EGenDate.MsPerSecond;
 
         endTime = startTime;
-        endTime = EGenDate.AddWorkMs(endTime, (long) (hoursOfInitialTrades * EGenDate.SecondsPerHour + 15 * EGenDate.SecondsPerMinute) * EGenDate.MsPerSecond);
+        endTime = EGenDate.AddWorkMs(endTime, (long) (hoursOfInitialTrades * EGenDate.SecondsPerMinute + 15 * EGenDate.SecondsPerMinute) * EGenDate.MsPerSecond);
 
         tradeOrderRollbackLimit = driverCETxnSettings.TxnMixGenerator_settings.cur_TradeOrderMixLevel;
         tradeOrderRollbackLevel = driverCETxnSettings.TO_settings.cur_rollback;
@@ -236,6 +239,7 @@ public class CETxnInputGenerator {
         if (HoldingsAndTrades.isAbortedTrade(tradeID)) {
             tradeID++;
         }
+
         tradeID += TPCEConstants.TRADE_SHIFT;
         return (tradeID);
     }
@@ -271,14 +275,18 @@ public class CETxnInputGenerator {
 
         numBrokers = rnd.intRange(TxnHarnessStructs.min_broker_list_len, TxnHarnessStructs.max_broker_list_len);
 
+
         inputStructure.setBrokerList(numBrokers);
+
         for (i = 0; i < numBrokers; ++i) {
             inputStructure.getBrokerList()[i] = new String();
         }
 
+
         if (numBrokers > brokers.GetBrokerCount()) {
             numBrokers = (int) brokers.GetBrokerCount();
         }
+
         count = 0;
         do {
             brokerID[count] = brokers.GenerateRandomBrokerId(rnd);
@@ -293,6 +301,7 @@ public class CETxnInputGenerator {
 
         sectorIndex = rnd.intRange(0, sectorCount - 1);
         inputStructure.setSectorName((String) sectors.getTupleByIndex(sectorIndex)[1].toString());
+
     }
 
 
@@ -428,8 +437,8 @@ public class CETxnInputGenerator {
         inputStructure.setSymbol(String.copyValueOf(tmp, 0, tmp.length));
 
         if (rnd.rndPercent(driverCETxnSettings.SD_settings.cur_LOBAccessPercentage))
-            inputStructure.setAccessLobFlag(1);
-        else inputStructure.setAccessLobFlag(0);
+            inputStructure.setAccessLobFlag(true);
+        else inputStructure.setAccessLobFlag(false);
 
         inputStructure.setMaxRowsToReturn(rnd.intRange(TPCEConstants.iSecurityDetailMinRows, TPCEConstants.iSecurityDetailMaxRows));
 
@@ -509,6 +518,7 @@ public class CETxnInputGenerator {
             inputStructure.setEndTradeDts(EGenDate.getTimeStamp(endTime));
 
             inputStructure.setMaxAcctId(CustomerAccountsGenerator.getEndtingAccId(activeCustomerCount));
+
 
             inputStructure.setAcctId(0);
             Arrays.fill(inputStructure.getTradeId(), 0);

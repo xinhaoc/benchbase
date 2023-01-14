@@ -245,9 +245,13 @@ public class TradeGenerator implements Iterator<Object[]> {
         int scalingFactor = generator.getScalingFactor();
         int hoursOfInitialTrades = generator.getInitTradeDays() * 8; // 8 hours per work day
 
-        totalTrades = hoursOfInitialTrades * 3600 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor; // 8 hours per work day
+//        totalTrades = (long) hoursOfInitialTrades * 3600 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor; // 8 hours per work day
+//        tradesPerWorkDay = 8 * 3600 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor *
+//                HoldingsAndTrades.ABORT_TRADE / 100; // 8 hours per work day, 3600 seconds per hour
+        totalTrades = (long) hoursOfInitialTrades * 60 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor; // 8 hours per work day
+//        totalTrades = hoursOfInitialTrades * 3600 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor; // 8 hours per work day
         tradesPerWorkDay = 8 * 3600 * TPCEConstants.DEFAULT_LOAD_UNIT / scalingFactor *
-                HoldingsAndTrades.ABORT_TRADE / 100; // 8 hours per work day, 3600 seconds per hour
+            HoldingsAndTrades.ABORT_TRADE / 100; // 8 hours per work day, 3600 seconds per hour
         meanBetweenTrades = 100.0 / HoldingsAndTrades.ABORT_TRADE * (double)scalingFactor / TPCEConstants.DEFAULT_LOAD_UNIT;
 
         customerHoldings = (List<HoldingInfo>[][])new ArrayList[LOAD_UNIT_ACCOUNT_COUNT][HoldingsAndTrades.MAX_SECURITIES_PER_ACCOUNT];
@@ -257,8 +261,12 @@ public class TradeGenerator implements Iterator<Object[]> {
             }
         }
 
-        currentTradeId = hoursOfInitialTrades * 3600 * (generator.getStartCustomer() - TPCEConstants.DEFAULT_START_CUSTOMER_ID) /
-                scalingFactor * HoldingsAndTrades.ABORT_TRADE / 100 + TPCEConstants.TRADE_SHIFT;
+//        currentTradeId = hoursOfInitialTrades * 3600 * (generator.getStartCustomer() - TPCEConstants.DEFAULT_START_CUSTOMER_ID) /
+//            scalingFactor * HoldingsAndTrades.ABORT_TRADE / 100 + TPCEConstants.TRADE_SHIFT;
+
+        currentTradeId = hoursOfInitialTrades * 60 * (generator.getStartCustomer() - TPCEConstants.DEFAULT_START_CUSTOMER_ID) /
+            scalingFactor * HoldingsAndTrades.ABORT_TRADE / 100 + TPCEConstants.TRADE_SHIFT;
+
 
         custSelection = new CustomerSelection(rnd, 0, 0, 100, generator.getStartCustomer(), TPCEConstants.DEFAULT_LOAD_UNIT);
         holdsGenerator = new HoldingsAndTrades(generator);
@@ -752,6 +760,7 @@ public class TradeGenerator implements Iterator<Object[]> {
     }
 
     private void generateNextTrade() {
+
         if (currCompletedTrades < totalTrades) {
             /*
              * While the earliest completion time is before the current
@@ -879,6 +888,7 @@ public class TradeGenerator implements Iterator<Object[]> {
                 Object[] tuple = new Object[columnsNum];
 
                 tuple[0] = newTrade.tradeId; // th_t_id
+
 
                 switch (i) {
                     case 0:

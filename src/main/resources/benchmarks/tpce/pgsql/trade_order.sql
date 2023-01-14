@@ -19,21 +19,21 @@
  * and its broker
  */
 
-CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id IDENT_T)
+CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id BIGINT)
 		RETURNS record AS $$
 DECLARE
 	-- output parameters
 	acct_name	varchar;
 	broker_name	varchar;
 	cust_f_name	varchar;
-	cust_id		IDENT_T;
+	cust_id		BIGINT;
 	cust_l_name	varchar;
 	cust_tier	smallint;
 	tax_id		varchar;
 	tax_status	smallint;
 
 	-- variables
-	broker_id 	IDENT_T;
+	broker_id 	BIGINT;
 	rs 		RECORD;
 BEGIN
 	-- Get account, customer, and broker information
@@ -71,7 +71,8 @@ BEGIN
 		cust_l_name,
 		cust_tier,
 		tax_id,
-		tax_status
+		tax_status,
+              broker_id
 	INTO	rs;
 
 	RETURN rs;
@@ -86,7 +87,7 @@ $$ LANGUAGE 'plpgsql';
  */
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame2(
-				IN acct_id 	IDENT_T, 
+				IN acct_id 	BIGINT,
 				IN exec_f_name	varchar,
 				IN exec_l_name	varchar,
 				IN exec_tax_id	varchar) RETURNS smallint AS $$
@@ -120,51 +121,51 @@ $$ LANGUAGE 'plpgsql';
  */
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame3(
-				IN acct_id		IDENT_T,
-				IN cust_id		IDENT_T,
+				IN acct_id		BIGINT,
+				IN cust_id		BIGINT,
 				IN cust_tier		smallint,
 				IN is_lifo		smallint,
 				IN issue		char(6),
 				IN st_pending_id	char(4),
 				IN st_submitted_id	char(4),
 				IN tax_status		smallint,
-				IN trade_qty		S_QTY_T,
+				IN trade_qty		INTEGER,
 				IN trade_type_id	char(3),
 				IN type_is_margin	smallint,
 				IN company_name		varchar,
-				IN requested_price	S_PRICE_T,
+				IN requested_price	FLOAT,
 				IN symbol		varchar) RETURNS record AS $$
 DECLARE
 	-- output parameters
 	comp_name	varchar;
-	required_price	S_PRICE_T;	
+	required_price	FLOAT;
 	symb_name	varchar;
-	buy_value	BALANCE_T;
-	charge_amount	VALUE_T;
-	comm_rate	S_PRICE_T;
-	cust_assets	BALANCE_T;
-	market_price	S_PRICE_T;
+	buy_value	FLOAT;
+	charge_amount	FLOAT;
+	comm_rate	FLOAT;
+	cust_assets	FLOAT;
+	market_price	FLOAT;
 	sec_name	varchar;
-	sell_value	BALANCE_T;
+	sell_value	FLOAT;
 	status_id	char(4);
-	tax_amount	VALUE_T;
+	tax_amount	FLOAT;
 	type_is_market	smallint;
 	type_is_sell	smallint;
 
 	-- variables
-	comp_id		IDENT_T;
+	comp_id		BIGINT;
 	exch_id		char(6);
-	tax_rates	S_PRICE_T;
-	acct_bal	BALANCE_T;
-	hold_assets	S_PRICE_T;
+	tax_rates	FLOAT;
+	acct_bal	FLOAT;
+	hold_assets	FLOAT;
 	rs		RECORD;
 
 	-- Local frame variables used when estimating impact of this trade on
 	-- any current holdings of the same security.
-	hold_price	S_PRICE_T;
-	hold_qty	S_QTY_T;
-	needed_qty	S_QTY_T;
-	holdsum_qty	S_QTY_T;
+	hold_price	FLOAT;
+	hold_qty	INTEGER;
+	needed_qty	INTEGER;
+	holdsum_qty	INTEGER;
 
 	-- cursor
 	hold_list	refcursor;
@@ -179,7 +180,7 @@ BEGIN
 		comp_id := 0;
 		SELECT	CO_ID
 		INTO	comp_id
-		FROM	COMPANY 
+		FROM	COMPANY
 		WHERE	CO_NAME = comp_name;
 
 		SELECT	S_EX_ID,
@@ -200,7 +201,7 @@ BEGIN
 			sec_name
 		FROM	SECURITY
 		WHERE	S_SYMB = symb_name;
-		
+
 		SELECT	CO_NAME
 		INTO	comp_name
 		FROM	COMPANY
@@ -212,7 +213,7 @@ BEGIN
 	INTO	market_price
 	FROM	LAST_TRADE
 	WHERE	LT_S_SYMB = symb_name;
-	
+
 	-- Set trade characteristics based on the type of trade.
 	SELECT	TT_IS_MRKT,
 		TT_IS_SELL
@@ -469,28 +470,31 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 4
- * Responsible for for creating an audit trail record of the order 
+ * Responsible for for creating an audit trail record of the order
  * and assigning a unique trade ID to it.
  */
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame4(
-				IN acct_id            IDENT_T,
-				IN charge_amount      VALUE_T,
-				IN comm_amount        VALUE_T,
+				IN acct_id            BIGINT,
+				IN charge_amount      FLOAT,
+				IN comm_amount        FLOAT,
 				IN exec_name          char(64),
 				IN is_cash            smallint,
 				IN is_lifo            smallint,
-				IN requested_price    S_PRICE_T,
+				IN requested_price    FLOAT,
 				IN status_id          char(4),
 				IN symbol             varchar(15),
-				IN trade_qty          S_QTY_T,
+				IN trade_qty          INTEGER,
 				IN trade_type_id      char(3),
-				IN type_is_market     smallint) RETURNS TRADE_T AS $$
+				IN type_is_market     smallint,
+				IN tr_b_id            BIGINT) RETURNS BIGINT AS $$
 DECLARE
 	-- variables
 	now_dts		timestamp;
-	trade_id	TRADE_T;
+	trade_id	BIGINT;
 BEGIN
+    --update the sequence
+    PERFORM setval('seq_trade_id', (select max(t_id) + 1 from TRADE), false);
 	-- Get the timestamp
 	SELECT	NOW()
 	INTO	now_dts;
@@ -500,8 +504,8 @@ BEGIN
 			T_ID, T_DTS, T_ST_ID, T_TT_ID, T_IS_CASH,
 			T_S_SYMB, T_QTY, T_BID_PRICE, T_CA_ID, T_EXEC_NAME,
 			T_TRADE_PRICE, T_CHRG, T_COMM, T_TAX, T_LIFO)
-	VALUES 		(nextval('seq_trade_id'), now_dts, status_id, trade_type_id, 
-			is_cash, symbol, trade_qty, requested_price, acct_id, 
+	VALUES 		(nextval('seq_trade_id'), now_dts, status_id, trade_type_id,
+			is_cash, symbol, trade_qty, requested_price, acct_id,
 			exec_name, NULL, charge_amount, comm_amount, 0, is_lifo);
 
 	-- Get the just generated trade id
@@ -514,9 +518,9 @@ BEGIN
 	IF type_is_market = 0 THEN
 		INSERT INTO TRADE_REQUEST (
 					TR_T_ID, TR_TT_ID, TR_S_SYMB,
-					TR_QTY, TR_BID_PRICE, TR_CA_ID)
+					TR_QTY, TR_BID_PRICE, TR_CA_ID, TR_B_ID)
 		VALUES 			(trade_id, trade_type_id, symbol,
-					trade_qty, requested_price, acct_id);
+					trade_qty, requested_price, acct_id, tr_b_id);
 	END IF;
 
 	-- Record trade information in TRADE_HISTORY table.

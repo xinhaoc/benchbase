@@ -10,6 +10,7 @@ public class MEEPriceBoard {
         fMeanInTheMoneySubmissionDelay = 1.0;
         security = new MEESecurity();
         this.securityFile = securityFile;
+
         numberOfSecurities = 0;
 
         numberOfSecurities = SecurityHandler.getSecurityNum(configuredCustomerCount);
@@ -18,8 +19,8 @@ public class MEEPriceBoard {
 
     }
 
-    public void getSymbol(long securityIndex, String szOutput, int outputLen) {
-        szOutput = securityFile.createSymbol(securityIndex, outputLen);
+    public String getSymbol(long securityIndex, String szOutput, int outputLen) {
+        return securityFile.createSymbol(securityIndex, outputLen);
     }
 
     public EGenMoney getMinPrice() {
@@ -39,7 +40,12 @@ public class MEEPriceBoard {
     }
 
     public EGenMoney getCurrentPrice(String securitySymbol) {
-        return (security.getCurrentPrice(securityFile.getIndex(securitySymbol)));
+        try{
+            return (security.getCurrentPrice(securityFile.getIndex(securitySymbol)));
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     public EGenMoney CalculatePrice(String securitySymbol, double fTime) {

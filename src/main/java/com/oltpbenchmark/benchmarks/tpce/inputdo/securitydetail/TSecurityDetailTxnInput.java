@@ -23,7 +23,7 @@ public class TSecurityDetailTxnInput {
     public int getMaxRowsToReturn(){
     	return max_rows_to_return;
     }
-    public long getAccessLobFlag(){
+    public boolean getAccessLobFlag(){
     	return access_lob_flag;
     }
     public TimestampType getStartDay(){
@@ -36,7 +36,7 @@ public class TSecurityDetailTxnInput {
     public void setMaxRowsToReturn(int max_rows_to_return){
     	this.max_rows_to_return = max_rows_to_return;
     }
-    public void setAccessLobFlag(long access_lob_flag){
+    public void setAccessLobFlag(boolean access_lob_flag){
     	this.access_lob_flag = access_lob_flag;
     }
     public void setStartDay(TimestampType start_day){
@@ -47,7 +47,7 @@ public class TSecurityDetailTxnInput {
     }
 
     private int                max_rows_to_return;
-	private long               access_lob_flag;
+	private boolean access_lob_flag;
 	private TimestampType      start_day;
 	private String             symbol;
 }

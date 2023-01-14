@@ -35,6 +35,9 @@ DROP TABLE IF EXISTS holding CASCADE;
 DROP TABLE IF EXISTS settlement CASCADE;
 DROP TABLE IF EXISTS trade_history CASCADE;
 DROP TABLE IF EXISTS trade CASCADE;
+DROP SEQUENCE IF EXISTS seq_trade_id;
+DROP FUNCTION IF EXISTS TradeStatusFrame1 (IN acct_id BIGINT);
+DROP FUNCTION IF EXISTS tradeupdateframe1(integer,integer,bigint[]);
 
 
 -- TPC-E Clause 2.2.8.4
@@ -83,7 +86,7 @@ CREATE TABLE customer
 (
     c_id      BIGINT      NOT NULL,
     c_tax_id  VARCHAR(20) NOT NULL,
-    c_st_id   CHAR(4)   ,
+    c_st_id   VARCHAR(4)   ,
     c_l_name  VARCHAR(30) NOT NULL,
     c_f_name  VARCHAR(30) NOT NULL,
     c_m_name  CHAR(1),
@@ -291,7 +294,7 @@ CREATE TABLE customer_account
     ca_bal    FLOAT    NOT NULL,
     PRIMARY KEY (ca_id)
 );
-CREATE INDEX i_ca_c_id ON customer_account (ca_c_id);
+-- CREATE INDEX i_ca_c_id ON customer_account (ca_c_id);
 
 -- TPC-E Clause 2.2.5.1
 CREATE TABLE account_permission
@@ -346,8 +349,8 @@ CREATE TABLE trade
     t_lifo        smallint     NOT NULL,
     PRIMARY KEY (t_id)
 );
-CREATE INDEX i_t_st_id ON trade (t_st_id);
-CREATE INDEX i_t_ca_id ON trade (t_ca_id);
+-- CREATE INDEX i_t_st_id ON trade (t_st_id);
+-- CREATE INDEX i_t_ca_id ON trade (t_ca_id);
 
 -- TPC-E Clause 2.2.6.5
 CREATE TABLE settlement
@@ -393,7 +396,7 @@ CREATE TABLE holding
     PRIMARY KEY (h_t_id)
 --     FOREIGN KEY (h_ca_id, h_s_symb) REFERENCES holding_summary (hs_ca_id, hs_s_symb)
 );
-CREATE INDEX i_holding ON holding (h_ca_id, h_s_symb);
+-- CREATE INDEX i_holding ON holding (h_ca_id, h_s_symb);
 
 
 -- TPC-E Clause 2.2.5.6
@@ -467,7 +470,11 @@ CREATE TABLE trade_request
     tr_qty       INTEGER  NOT NULL CHECK (tr_qty > 0),
     tr_bid_price FLOAT    NOT NULL CHECK (tr_bid_price > 0),
     tr_ca_id     BIGINT  ,
-    --tr_b_id BIGINT NOT NULL REFERENCES broker (b_id),
+    tr_b_id BIGINT NOT NULL,
     PRIMARY KEY (tr_t_id)
 );
-CREATE INDEX i_tr_s_symb ON trade_request (tr_s_symb);
+-- REFERENCES broker (b_id)
+-- CREATE INDEX i_tr_s_symb ON trade_request (tr_s_symb);
+
+-- create sequence for table trade
+CREATE SEQUENCE seq_trade_id;

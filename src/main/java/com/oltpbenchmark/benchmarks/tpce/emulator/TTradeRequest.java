@@ -3,14 +3,14 @@ package com.oltpbenchmark.benchmarks.tpce.emulator;
 import com.oltpbenchmark.benchmarks.tpce.TPCEConstants;
 
 public class TTradeRequest {
-    public double              price_quote;
-    public long              trade_id;
-    public int               trade_qty;
+    public double price_quote;
+    public long trade_id;
+    public int trade_qty;
     public TPCEConstants.eMEETradeRequestAction eAction;
-    public String                symbol;
-    public String                trade_type_id;
+    public String symbol;
+    public String trade_type_id;
 
-    public TTradeRequest(){
+    public TTradeRequest() {
         symbol = new String();
         trade_type_id = new String();
     }

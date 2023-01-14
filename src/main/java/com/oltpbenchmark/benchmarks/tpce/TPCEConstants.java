@@ -1,6 +1,7 @@
 package com.oltpbenchmark.benchmarks.tpce;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class TPCEConstants {
@@ -157,11 +158,11 @@ public abstract class TPCEConstants {
 
     ;
 
-    public static final Set<String> SCALING_TABLES = new HashSet<String>();
+    public static final Set<String> SCALING_TABLES = new LinkedHashSet<String>();
 
     static {
-        SCALING_TABLES.add(TPCEConstants.TABLENAME_ACCOUNT_PERMISSION);
         SCALING_TABLES.add(TPCEConstants.TABLENAME_ADDRESS);
+        SCALING_TABLES.add(TPCEConstants.TABLENAME_ACCOUNT_PERMISSION);
         SCALING_TABLES.add(TPCEConstants.TABLENAME_COMPANY_COMPETITOR);
         SCALING_TABLES.add(TPCEConstants.TABLENAME_COMPANY);
         SCALING_TABLES.add(TPCEConstants.TABLENAME_CUSTOMER_ACCOUNT);
@@ -194,6 +195,33 @@ public abstract class TPCEConstants {
 
     ;
 
+    public static final Set<String> FUNCTION_PATH = new HashSet<String>();
+
+    static {
+        FUNCTION_PATH.add("broker_volume.sql");
+        FUNCTION_PATH.add("customer_position.sql");
+        FUNCTION_PATH.add("data_maintenance.sql");
+//        FUNCTION_PATH.add("drop_all_functions.sql");
+        FUNCTION_PATH.add("market_feed.sql");
+        FUNCTION_PATH.add("market_watch.sql");
+        FUNCTION_PATH.add("security_detail.sql");
+        FUNCTION_PATH.add("trade_cleanup.sql");
+        FUNCTION_PATH.add("trade_lookup.sql");
+        FUNCTION_PATH.add("trade_order.sql");
+        FUNCTION_PATH.add("trade_result.sql");
+        FUNCTION_PATH.add("trade_status.sql");
+        FUNCTION_PATH.add("trade_update.sql");
+    }
+
+    public static final Set<String> CONSTRAINS_PATH = new HashSet<String>();
+
+    static {
+        CONSTRAINS_PATH.add("create_index.sql");
+
+    }
+
+
+
     /*
      * Miscellaneous loader parameters
      */
@@ -203,7 +231,7 @@ public abstract class TPCEConstants {
     public static final long TRADE_SHIFT = 200000000000000L;  // 200 trillion (2 * 10^14); trade ids shift
 
     public static final long DEFAULT_VALID_START_CUSTOMER_ID = 1;
-    public static final long DEFAULT_START_CUSTOMER_ID = -1;
+    public static final long DEFAULT_START_CUSTOMER_ID = 1;
     public static final long ACTIVECUSTOMERCOUNT = 5000;
 
 

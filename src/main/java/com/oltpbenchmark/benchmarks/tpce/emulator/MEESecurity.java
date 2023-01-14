@@ -263,7 +263,12 @@ public class MEESecurity {
     	return rangeHigh;
     }
 
+    public void setCurrTime(){
+        this.currTime = new Date();
+    }
+
     public EGenMoney getCurrentPrice(long secId){
+        setCurrTime();
     	GregorianCalendar currGreTime = new GregorianCalendar();
     	GregorianCalendar baseGreTime = new GregorianCalendar();
     	currGreTime.setTime(currTime);

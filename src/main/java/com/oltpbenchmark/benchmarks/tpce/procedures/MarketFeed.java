@@ -1,4 +1,11 @@
 package com.oltpbenchmark.benchmarks.tpce.procedures;
 
-public class MarketFeed {
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class MarketFeed extends TPCEProcedure{
+    @Override
+    public boolean run(Connection connection) throws SQLException {
+        return true;
+    }
 }

@@ -1,10 +1,11 @@
 package com.oltpbenchmark.benchmarks.tpce.inputdo;
 
 public class TTickerEntry {
-    public double              price_quote;
-    public int               trade_qty;
-    public String                symbol;
-    public TTickerEntry(){
+    public double price_quote;
+    public int trade_qty;
+    public String symbol;
+
+    public TTickerEntry() {
         symbol = new String();
     }
 

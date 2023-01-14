@@ -229,6 +229,7 @@ public abstract class BenchmarkModule {
                 runner.runExternalScript(ddlPath);
             } else {
                 String ddlPath = this.getDatabaseDDLPath(dbType);
+                System.out.println(ddlPath);
                 LOG.debug("Executing script [{}] for database type [{}]", ddlPath, dbType);
                 runner.runScript(ddlPath);
             }

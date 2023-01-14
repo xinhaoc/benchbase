@@ -36,6 +36,9 @@ public class TimerWheel {
         nextTime = new WheelTime(wheelConfig, TWheelConfig.MaxWheelCycles, (period * (EGenDate.MsPerSecond / resolution)) - 1);
         numberOfTimers = 0;
         timerWheel = new ArrayList<LinkedList<TimerWheelTimer>>(period * (EGenDate.MsPerSecond / resolution));
+        for(int i = 0; i < (period * (EGenDate.MsPerSecond / resolution)); i++){
+            timerWheel.add(new LinkedList<TimerWheelTimer>());
+        }
         this.expiryData = expiryData;
         this.expiryObject = expiryObject;
         this.expiryFunction = expiryFunction;
@@ -50,7 +53,6 @@ public class TimerWheel {
         GregorianCalendar Now = new GregorianCalendar();
         WheelTime RequestedTime = new WheelTime(wheelConfig, baseTime, Now, (int) (Offset * (EGenDate.MsPerSecond / resolution)));
         TimerWheelTimer pNewTimer = new TimerWheelTimer(expiryObject, expiryFunction, expiryData);
-
         currentTime.set(baseTime, Now);
         expiryProcessing();
 

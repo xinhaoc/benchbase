@@ -58,7 +58,7 @@ public class TTradeLookupTxnInput {
         this.acct_id = acct_id;
     }
     public void setMaxAcctId(long max_acct_id){
-        this.max_acct_id = acct_id;
+        this.max_acct_id = max_acct_id;
     }
     public void setFrameToExecute(int frame_to_execute){
         this.frame_to_execute = frame_to_execute;
